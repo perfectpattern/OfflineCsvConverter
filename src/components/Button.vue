@@ -15,14 +15,12 @@
       duration-150
       outline-none
       focus:outline-none
+      bg-opacity-80
+      hover:bg-opacity-90
+      active:bg-gray-800
     "
     :class="{
-      'bg-gray-700 hover:bg-gray-900 active:bg-blue-600':
-        !disabled && color == 'gray',
-      'bg-blue-700 hover:bg-blue-900 active:bg-blue-600':
-        !disabled && color == 'blue',
-      'bg-gray-200 cursor-default': disabled && color == 'gray',
-      'bg-blue-200 cursor-default': disabled && color == 'blue',
+      'bg-opacity-40': disabled,
       'px-8 py-4 text-lg': size === 'large',
       'px-4 py-2': size === 'normal',
       'px-3 py-1': size === 'small',
@@ -45,9 +43,6 @@ export default {
     },
     size: {
       default: "normal", //'small', 'large'
-    },
-    color: {
-      default: "gray", //'blue'
     },
   },
 };

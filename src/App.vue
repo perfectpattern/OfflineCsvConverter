@@ -1,54 +1,32 @@
 <template>
-  <div class="max-w-6xl mx-auto">
-    <div class="text-center py-4 text-4xl font-semibold text-blue-500">
-      Offline CSV Converter
-    </div>
-    <div class="text-center py-2 text-sm font-semibold">
-      provided for free by
-      <a href="perfectpattern.de" target="_blank">PerfectPattern GmbH</a>
-    </div>
-    <div class="text-center text-lg py-2 font-semibold">
-      This tool does an OFFLINE (client-based) conversion of CSV to CSV & JSON
-      to CSV. No upload or saving of the data.
-    </div>
-    <div>
-      This tool was designed to quickly parse and format any CSV or JSON data up
-      to few GBs into a target CSV format so it can be used for AutoML like
-      <a href="perfectpattern.de" target="_blank">aivis</a>.
-    </div>
-    <div class="p-6">
-      <div class="text-2xl">Input (CSV or JSON)</div>
-      <my-nav v-model="currentTab" :tabs="tabs" class="mb-4">
-        <my-switch v-model="dataType" :data="dataTypes" />
-      </my-nav>
+  <div class="max-w-6xl mx-auto bg-gray-50 bg-opacity-50 border-l border-r min-h-screen">
+    <!--Head Section-->
+    <head-section></head-section>
 
-      <div v-show="currentTab === 'clipboard'">
-        <div
-          class="
-            border-2
-            rounded-md
-            border-dashed border-gray-500
-            p-4
-            flex
-            justify-center
-            items-center
-            h-48
-          "
-        >
-          <my-button @click="readClipboard" :size="'normal'"
-            >Read clipboard</my-button
-          >
-        </div>
+    <!--Switch for datatype-->
+    <div class="flex justify-center mt-8">
+      <my-switch v-model="dataType" :data="dataTypes" />
+    </div>
+
+    <div class="p-6">
+      <div class="text-2xl flex justify-between">
+        <div>Input {{ dataType === "csv" ? "CSV" : "JSON" }}</div>
+        <my-button @click="reset" class="bg-red-500">Reset</my-button>
       </div>
 
-      <div v-show="currentTab === 'file'">
+      <!--Tabs Navigation-->
+      <my-nav v-model="currentTab" :tabs="tabs" class="mb-4"> </my-nav>
+
+      <!--File input local-->
+      <div v-show="currentTab === 'local'">
         <file-selector
           :accept="'.json, .csv, application/json, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel'"
           @file-selected="fileSelected"
-          :text="dataTypes[dataType]"
+          @read-clipboard="readClipboard"
         ></file-selector>
       </div>
 
+      <!--File input api-->
       <div v-show="currentTab === 'api'">
         <api-request @dataReceived="apiDataReceived" />
       </div>
@@ -113,6 +91,7 @@
 import papa from "papaparse";
 import DialogModal from "./components/jetstream/DialogModal.vue";
 import MyNav from "./components/Nav.vue";
+
 import MySwitch from "./components/SwitchSmall.vue";
 import MyButton from "./components/Button.vue";
 import MyTable from "./components/Table.vue";
@@ -123,6 +102,8 @@ import ColumnsSorting from "./partials/ColumnsSorting.vue";
 import Export from "./partials/Export.vue";
 import TimestampSettings from "./partials/TimestampSettings.vue";
 import ApiRequest from "./partials/ApiRequest.vue";
+import HeadSection from "./partials/HeadSection.vue";
+
 import { jsonParser } from "/src/modules/jsonParser";
 
 export default {
@@ -138,6 +119,7 @@ export default {
     ColumnsSorting,
     Export,
     TimestampSettings,
+    HeadSection,
     ApiRequest,
   },
 
@@ -159,12 +141,11 @@ export default {
         outputString: "YYYY MM DD",
       },
       timestampParsingError: false,
-      currentTab: "api",
-      dataType: "json",
-      dataTypes: { json: "JSON", csv: "CSV" },
+      currentTab: "local",
+      dataType: "csv",
+      dataTypes: { csv: "CSV TO CSV", json: "JSON TO CSV" },
       tabs: [
-        { key: "file", name: "From File" },
-        { key: "clipboard", name: "From Clipboard" },
+        { key: "local", name: "From Local" },
         { key: "api", name: "From API" },
       ],
       parsedData: null,
@@ -172,6 +153,10 @@ export default {
   },
 
   methods: {
+    reset() {
+      this.parsedData = null;
+    },
+
     changeTab(key) {
       this.currentTab = key;
     },
@@ -246,8 +231,16 @@ export default {
               }
 
               //Finally
-              console.log("Parsing complete:");
-              console.log(this.parsedData);
+              if (this.parsedData === null) {
+                this.errors = [
+                  {
+                    row: 0,
+                    type: "Data is not csv",
+                    message:
+                      "The received data could not be parsed as CSV by papaparse (https://www.papaparse.com/docs).",
+                  },
+                ];
+              }
               this.loading = false;
               resolve();
             }.bind(this),
@@ -259,10 +252,20 @@ export default {
     readClipboard() {
       this.loading = true;
       navigator.clipboard.readText().then((clipText) => {
-        if (clipText !== null) {
-          this.processRawData(clipText);
+        if (clipText === null || clipText.length < 100) {
+          this.errors = [
+            {
+              row: 0,
+              type: "No relevant data",
+              message:
+                "No relevant data was received from clipboard [received: '" +
+                clipText +
+                "']. Please try again.",
+            },
+          ];
+          this.loading = false;
         } else {
-          alert("No data received. Please try again.");
+          this.processRawData(clipText);
         }
       });
     },

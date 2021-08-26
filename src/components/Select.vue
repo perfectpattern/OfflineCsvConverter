@@ -1,0 +1,16 @@
+<template>
+  <select
+    class="
+      py-1
+      border-gray-300
+      focus:outline-none
+      focus:ring-0
+      focus:border-blue-200
+      rounded-md
+      shadow-sm
+    "
+    v-model="requestType"
+  >
+    <slot></slot>
+  </select>
+</template>

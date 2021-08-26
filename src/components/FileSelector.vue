@@ -41,35 +41,50 @@
       </svg>
 
       <div class="text-sm text-gray-600 justify-center">
-        <label
-          for="file-upload"
-          class="
-            relative
-            cursor-pointer
-            rounded-md
-            font-semibold
-            text-blue-300
-            hover:text-blue-500
-            focus-within:outline-none
-          "
-        >
-          <span>Select file</span>
-          <input
-            id="file-upload"
-            name="file-upload"
-            @change="selectedFiles"
-            type="file"
-            ref="fileupload"
-            class="sr-only"
-            accept="accept"
-          />
-        </label>
+        <p class="font-semibold text-lg">Drag & Drop HERE</p>
         <p class="">or</p>
-        <p class="font-semibold">Drag & Drop HERE</p>
-        <div
-          v-if="text !== null"
-          class="text-gray-500 text-center mt-2 text-xs"
-        >
+
+        <div class="flex gap-x-2 justify-center items-center text-base">
+          <!--Select file-->
+          <label
+            for="file-upload"
+            class="
+              relative
+              cursor-pointer
+              rounded-md
+              font-semibold
+              text-blue-300
+              hover:text-blue-500
+              focus-within:outline-none
+            "
+          >
+            <span>Select file</span>
+            <input
+              id="file-upload"
+              name="file-upload"
+              @change="selectedFiles"
+              type="file"
+              ref="fileupload"
+              class="sr-only"
+              accept="accept"
+            />
+          </label>
+
+          <p>|</p>
+          <div
+            @click="readClipboard"
+            class="
+              cursor-pointer
+              font-semibold
+              text-blue-300
+              hover:text-blue-500
+              focus-within:outline-none
+            "
+          >
+            Read clipboard
+          </div>
+        </div>
+        <div v-if="text" class="text-gray-500 text-center mt-2 text-xs">
           {{ text }}
         </div>
 
@@ -82,10 +97,14 @@
   </div>
 </template>
 <script>
+import MyButton from "/src/components/Button.vue";
+
 export default {
-  components: {},
+  components: { MyButton },
 
   props: ["accept", "text"],
+
+  emits: ["file-selected", "read-clipboard"],
 
   data() {
     return {
@@ -128,6 +147,11 @@ export default {
 
     filesSelected(files) {
       this.$emit("file-selected", files[0]);
+    },
+
+    readClipboard(files) {
+      this.message = null;
+      this.$emit("read-clipboard");
     },
 
     dragenter() {
