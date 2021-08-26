@@ -50,7 +50,7 @@
       </thead>
 
       <!-----------------BODY---------------->
-      <tbody class="bg-white divide-y divide-gray-200 relative">
+      <tbody class="divide-y divide-gray-200 relative">
         <!----Table rows---->
         <tr
           v-for="(record, rowIndex) in filteredData.data"

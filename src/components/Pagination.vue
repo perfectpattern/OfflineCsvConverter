@@ -4,6 +4,7 @@
     <div class="flex justify-between sm:justify-end gap-2">
       <my-button
         :size="'small'"
+        class="bg-blue-300"
         :disabled="info.isFirstPage"
         @click="$emit('pageOrder', 'first')"
       >
@@ -12,6 +13,7 @@
 
       <my-button
         :size="'small'"
+        class="bg-blue-300"
         :disabled="info.isFirstPage"
         @click="$emit('pageOrder', 'prev')"
       >
@@ -35,15 +37,16 @@
       />
       <my-button
         :size="'small'"
+        class="bg-blue-300"
         :disabled="info.isLastPage"
         @click="$emit('pageOrder', 'next')"
-        class="py-1"
       >
         <svg-chevron-right class="h-4 w-6 stroke-current" />
       </my-button>
 
       <my-button
         :size="'small'"
+        class="bg-blue-300"
         :disabled="info.isLastPage"
         @click="$emit('pageOrder', 'last')"
       >

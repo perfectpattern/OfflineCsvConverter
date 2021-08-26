@@ -1,11 +1,23 @@
 <template>
-  <div class="max-w-6xl mx-auto bg-gray-50 bg-opacity-50 border-l border-r min-h-screen">
+  <div
+    class="
+      max-w-6xl
+      mx-auto
+      bg-gray-50 bg-opacity-50
+      border-l border-r
+      min-h-screen
+    "
+  >
     <!--Head Section-->
     <head-section></head-section>
 
     <!--Switch for datatype-->
     <div class="flex justify-center mt-8">
-      <my-switch v-model="dataType" :data="dataTypes" />
+      <my-switch
+        v-model="dataType"
+        :data="dataTypes"
+        @update:modelValue="reset()"
+      />
     </div>
 
     <div class="p-6">
@@ -15,12 +27,20 @@
       </div>
 
       <!--Tabs Navigation-->
-      <my-nav v-model="currentTab" :tabs="tabs" class="mb-4"> </my-nav>
+      <my-nav
+        v-model="currentTab"
+        @update:modelValue="reset()"
+        :tabs="tabs"
+        :disabled="false"
+        class="mb-4"
+      >
+      </my-nav>
 
       <!--File input local-->
       <div v-show="currentTab === 'local'">
         <file-selector
           :accept="'.json, .csv, application/json, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel'"
+          :filename="filename"
           @file-selected="fileSelected"
           @read-clipboard="readClipboard"
         ></file-selector>
@@ -60,7 +80,7 @@
       <!--Output Data Preview-->
       <div v-show="validData">
         <div class="flex justify-between items-center mt-10 mb-4 border-b pb-2">
-          <div class="text-xl">Output Data Preview</div>
+          <div class="text-xl">Output Preview</div>
           <export
             :timestampColumn="timestampColumn"
             :sortedColumns="sortedColumns"
@@ -79,19 +99,20 @@
       </div>
 
       <!--Loading modal-->
-      <dialog-modal :show="loading">
+      <!--<dialog-modal :show="loading">
         <template #title>Reading...{{ readRecords }}</template>
         <template #content><svg-pending class="h-10" /></template>
-      </dialog-modal>
+      </dialog-modal>-->
+
+      <parser-csv :input="rawCsv" @parsing-finished="parsingFinished" />
+      <parser-json :input="rawJson" @parsing-finished="parsingFinished" />
     </div>
   </div>
 </template>
 
 <script>
-import papa from "papaparse";
 import DialogModal from "./components/jetstream/DialogModal.vue";
 import MyNav from "./components/Nav.vue";
-
 import MySwitch from "./components/SwitchSmall.vue";
 import MyButton from "./components/Button.vue";
 import MyTable from "./components/Table.vue";
@@ -103,8 +124,8 @@ import Export from "./partials/Export.vue";
 import TimestampSettings from "./partials/TimestampSettings.vue";
 import ApiRequest from "./partials/ApiRequest.vue";
 import HeadSection from "./partials/HeadSection.vue";
-
-import { jsonParser } from "/src/modules/jsonParser";
+import ParserCsv from "./partials/ParserCSV.vue";
+import ParserJson from "./partials/ParserJSON.vue";
 
 export default {
   components: {
@@ -120,14 +141,18 @@ export default {
     Export,
     TimestampSettings,
     HeadSection,
+    ParserCsv,
+    ParserJson,
     ApiRequest,
   },
 
   data() {
     return {
-      loading: false,
+      //loading: false,
       readRecords: 0,
+      isReset: true,
       message: null,
+      filename: null,
       errors: null,
       validData: false,
       dateError: false,
@@ -149,108 +174,41 @@ export default {
         { key: "api", name: "From API" },
       ],
       parsedData: null,
+      rawCsv: null,
+      rawJson: null,
     };
   },
 
   methods: {
     reset() {
+      this.validData = false;
+      this.errors = null;
       this.parsedData = null;
-    },
-
-    changeTab(key) {
-      this.currentTab = key;
-    },
-
-    changeDatatype(key) {
-      this.dataType = key;
+      this.filename = null;
+      this.allFields = [];
+      this.sortedColumns = [];
+      if (this.currentTab === "api") this.dataType = "json";
+      this.isReset = true;
     },
 
     receivedRawData(data) {
       this.rawData = data;
     },
 
-    processRawData(input) {
-      this.errors = null;
-      this.validData = false;
+    parsingFinished(validData, errors, parsedData, allFields, sortedColumns) {
+      this.validData = validData;
+      this.errors = errors;
+      this.parsedData = parsedData;
+      this.allFields = allFields;
+      this.sortedColumns = sortedColumns;
+      this.isReset = false;
 
-      return new Promise(
-        function (resolve, reject) {
-          let j = 0;
-
-          let res = {
-            data: [],
-            errors: [],
-            meta: {},
-          };
-
-          this.readRecords = 0;
-
-          papa.parse(input, {
-            header: true,
-            worker: false,
-            skipEmptyLines: true,
-
-            step: function (results, parser) {
-              if (j % 10000 == 0) {
-                this.readRecords = j;
-              }
-              if (j == 0) res.meta = results.meta;
-              res.data.push(results.data);
-              if (results.errors.length > 0) {
-                for (var i = 0; i < results.errors.length; i++) {
-                  res.errors.push(results.errors[i]);
-                  console.log(results.errors[i]);
-                }
-              }
-              //res.errors = results.errors;
-              j++;
-            }.bind(this),
-
-            complete: function (results, file) {
-              //Success
-              if (
-                res.errors.length == 0 &&
-                res.hasOwnProperty("data") &&
-                res.data.length > 0 &&
-                res.hasOwnProperty("meta") &&
-                res.meta.hasOwnProperty("fields")
-              ) {
-                this.errors = null;
-                this.validData = true;
-                this.parsedData = res;
-                this.allFields = res.meta.fields;
-                this.sortedColumns = res.meta.fields;
-              }
-
-              //Error
-              else {
-                this.errors = res.errors;
-                this.validData = false;
-                this.parsedData = null;
-                this.sortedColumns = [];
-              }
-
-              //Finally
-              if (this.parsedData === null) {
-                this.errors = [
-                  {
-                    row: 0,
-                    type: "Data is not csv",
-                    message:
-                      "The received data could not be parsed as CSV by papaparse (https://www.papaparse.com/docs).",
-                  },
-                ];
-              }
-              this.loading = false;
-              resolve();
-            }.bind(this),
-          });
-        }.bind(this)
-      );
+      this.rawCsv = null;
+      this.rawJson = null;
     },
 
     readClipboard() {
-      this.loading = true;
+      this.reset();
       navigator.clipboard.readText().then((clipText) => {
         if (clipText === null || clipText.length < 100) {
           this.errors = [
@@ -263,17 +221,41 @@ export default {
                 "']. Please try again.",
             },
           ];
-          this.loading = false;
+          this.isReset = false;
         } else {
-          this.processRawData(clipText);
+          this.rawCsv = clipText;
         }
       });
     },
 
     fileSelected(file) {
       if (!file) return;
-      this.loading = true;
-      this.processRawData(file);
+      this.reset();
+      this.filename = file.name;
+
+      //CSV: Papaparse streams the file
+      if (this.dataType === "csv") {
+        this.rawCsv = file;
+      }
+
+      //JSON: Read the file and parse as string
+      if (this.dataType === "json") {
+        const reader = new FileReader();
+        reader.onload = (res) => {
+          this.rawJson = JSON.parse(res.target.result);
+        };
+        reader.onerror = (err) => {
+          this.errors = [
+            {
+              row: 0,
+              type: "Not readable",
+              message: "The file could not be read. Please check console.",
+            },
+          ];
+          console.log(err);
+        };
+        reader.readAsText(file);
+      }
     },
 
     updateSortedColumns(sortedColumns) {
@@ -292,25 +274,13 @@ export default {
       this.timestampParsingError = error;
     },
 
-    apiDataReceived(json) {
-      let res = jsonParser.parse(json);
-
-      //Success
-      if (res.errors.length == 0) {
-        this.errors = null;
-        this.validData = true;
-
-        this.parsedData = res;
-        this.allFields = res.meta.fields;
-        this.sortedColumns = res.meta.fields;
-      }
-
-      //Error
-      else {
-        this.errors = res.errors;
-        this.validData = false;
-        this.parsedData = null;
-        this.sortedColumns = [];
+    apiDataReceived(data) {
+      this.reset();
+      if (this.dataType === "csv") this.rawCsv = data;
+      if (this.dataType === "json") {
+        this.rawJson = data;
+        console.log("Received API data:");
+        console.log(data);
       }
     },
   },

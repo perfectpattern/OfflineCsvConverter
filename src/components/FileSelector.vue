@@ -87,7 +87,9 @@
         <div v-if="text" class="text-gray-500 text-center mt-2 text-xs">
           {{ text }}
         </div>
-
+        <div v-show="filename" class="text-gray-500 text-center mt-2 text-xs">
+          {{ filename }}
+        </div>
         <!--Errors-->
         <div class="text-red-500 mt-1 flex justify-end text-xs font-bold">
           <div>{{ message !== null ? message : " " }}</div>
@@ -102,15 +104,13 @@ import MyButton from "/src/components/Button.vue";
 export default {
   components: { MyButton },
 
-  props: ["accept", "text"],
+  props: ["accept", "text", "filename"],
 
   emits: ["file-selected", "read-clipboard"],
 
   data() {
     return {
       message: null,
-      filename: this.initialFilename,
-      progress: this.initialProgress,
       fileOverDropArea: false,
       file: undefined,
       dragcount: 0,

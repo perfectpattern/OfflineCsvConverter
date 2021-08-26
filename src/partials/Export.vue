@@ -1,5 +1,7 @@
 <template>
-  <my-button :color="'blue'" @click="exportData">Export</my-button>
+  <my-button class="bg-gray-700" @click="exportData"
+    >CONVERT & DOWNLOAD</my-button
+  >
 
   <!--Exporting modal-->
   <dialog-modal :show="running">

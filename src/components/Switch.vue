@@ -70,6 +70,8 @@ export default {
       default: false,
     },
   },
+
+  emits: ["update:modelValue"],
   methods: {
     inputChanged(value) {
       if (this.disabled) return;

@@ -15,9 +15,6 @@
       duration-150
       outline-none
       focus:outline-none
-      bg-opacity-80
-      hover:bg-opacity-90
-      active:bg-gray-800
     "
     :class="{
       'bg-opacity-40': disabled,
