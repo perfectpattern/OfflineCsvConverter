@@ -13,7 +13,7 @@
 
     <div class="mt-2 mb-6 text-center text-sm">
       This tool is designed to quickly parse and format any CSV or JSON data up
-      to few GBs into a target CSV format so it can be used for AutoML like e.g.
+      to few hundred Megabytes into a target CSV format so it can be used for AutoML like e.g.
       <a href="https://perfectpattern.de" target="_blank">aivis</a>. It is
       purely client-based and does not save or send any data.
     </div>

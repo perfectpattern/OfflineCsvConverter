@@ -13,7 +13,13 @@
         mb-2
       "
     >
-      <div class="font-bold">Row {{ error.row }}: {{ error.type }}</div>
+      <div class="font-bold">
+        {{
+          error.hasOwnProperty("row")
+            ? "Row " + error.row + ": " + error.type
+            : error.type
+        }}
+      </div>
       <div>{{ error.message }}</div>
     </div>
   </div>

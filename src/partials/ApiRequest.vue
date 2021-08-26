@@ -35,7 +35,12 @@
       </div>
       <div>
         <div>&nbsp;</div>
-        <my-button @click="makeRequest" class="bg-blue-300">Send</my-button>
+        <my-button
+          @click="makeRequest"
+          :disabled="url === null || url.length < 5"
+          class="bg-blue-300"
+          >Send</my-button
+        >
       </div>
     </div>
   </dashed-box>
@@ -60,6 +65,8 @@ export default {
     };
   },
 
+  emits: ["data-received", "request-error"],
+
   methods: {
     makeRequest() {
       this.axios({
@@ -70,12 +77,15 @@ export default {
         .then(
           function (response) {
             let data = response.data;
-            this.$emit("dataReceived", data);
+            this.$emit("data-received", data);
           }.bind(this)
         )
-        .catch(function (error) {
-          console.log(error);
-        });
+        .catch(
+          function (error) {
+            this.$emit("request-error", error);
+            console.log(error);
+          }.bind(this)
+        );
     },
   },
 };

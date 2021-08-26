@@ -48,7 +48,10 @@
 
       <!--File input api-->
       <div v-show="currentTab === 'api'">
-        <api-request @dataReceived="apiDataReceived" />
+        <api-request
+          @data-received="apiDataReceived"
+          @request-error="requestError"
+        />
       </div>
 
       <!--Errors-->
@@ -213,7 +216,6 @@ export default {
         if (clipText === null || clipText.length < 100) {
           this.errors = [
             {
-              row: 0,
               type: "No relevant data",
               message:
                 "No relevant data was received from clipboard [received: '" +
@@ -223,7 +225,22 @@ export default {
           ];
           this.isReset = false;
         } else {
-          this.rawCsv = clipText;
+          if (this.dataType === "csv") this.rawCsv = clipText;
+          if (this.dataType === "json") {
+            try {
+              let a = JSON.parse(clipText);
+              this.rawJson = a;
+            } catch (e) {
+              this.errors = [
+                {
+                  type: "Not parsable",
+                  message:
+                    "The clipboard content could not be parsed as json. Please check console.",
+                },
+              ];
+              console.log(e);
+            }
+          }
         }
       });
     },
@@ -242,12 +259,23 @@ export default {
       if (this.dataType === "json") {
         const reader = new FileReader();
         reader.onload = (res) => {
-          this.rawJson = JSON.parse(res.target.result);
+          try {
+            let a = JSON.parse(res.target.result);
+            this.rawJson = a;
+          } catch (e) {
+            this.errors = [
+              {
+                type: "Not parsable",
+                message:
+                  "The file could not be parsed as json. Please check console.",
+              },
+            ];
+            console.log(e);
+          }
         };
         reader.onerror = (err) => {
           this.errors = [
             {
-              row: 0,
               type: "Not readable",
               message: "The file could not be read. Please check console.",
             },
@@ -282,6 +310,16 @@ export default {
         console.log("Received API data:");
         console.log(data);
       }
+    },
+
+    requestError(error) {
+      this.reset();
+      this.errors = [
+        {
+          type: "Request error",
+          message: JSON.stringify(error),
+        },
+      ];
     },
   },
 };

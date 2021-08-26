@@ -114,7 +114,6 @@ export default {
               if (this.parsedData === null) {
                 this.errors = [
                   {
-                    row: 0,
                     type: "Data is not csv",
                     message:
                       "The received data could not be parsed as CSV by papaparse (https://www.papaparse.com/docs).",
