@@ -196,6 +196,7 @@ export default {
       this.filename = null;
       this.allFields = [];
       this.sortedColumns = [];
+      this.renamings = {};
       if (this.currentTab === "api") this.dataType = "json";
       this.isReset = true;
     },
@@ -304,7 +305,7 @@ export default {
     },
 
     updateRenamings(renamings) {
-      console.log('Updated renamings: ');
+      console.log("Updated renamings: ");
       console.log(renamings);
       this.renamings = renamings;
     },

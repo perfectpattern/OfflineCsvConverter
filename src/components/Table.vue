@@ -1,5 +1,5 @@
 <template>
-  <div v-if="validData" class="overflow-x-auto">
+  <div v-if="validData" class="">
     <!--Pagination-->
     <pagination
       class="flex-shrink-0 rounded"
@@ -9,84 +9,85 @@
       @pageLengthChanged="pageLengthChange"
     >
     </pagination>
+    <div class="overflow-x-auto">
+      <!--Table-->
+      <table class="min-w-full divide-y divide-gray-200">
+        <!--------------------HEADER--------------------->
+        <thead class="bg-gray-100">
+          <tr class="">
+            <th
+              class="
+                px-4
+                py-2
+                pt-3
+                text-left text-xs
+                font-bold
+                text-gray-900
+                uppercase
+                tracking-wider
+              "
+            >
+              #
+            </th>
+            <th
+              v-for="(field, columnIndex) in fieldsDisplayNames"
+              :key="columnIndex"
+              scope="col"
+              class="
+                px-4
+                py-2
+                pt-3
+                text-left text-xs
+                font-medium
+                text-gray-500
+                tracking-wider
+              "
+            >
+              {{ field }}
+            </th>
+          </tr>
+        </thead>
 
-    <!--Table-->
-    <table class="min-w-full divide-y divide-gray-200">
-      <!--------------------HEADER--------------------->
-      <thead class="bg-gray-100">
-        <tr class="">
-          <th
-            class="
-              px-4
-              py-2
-              pt-3
-              text-left text-xs
-              font-bold
-              text-gray-900
-              uppercase
-              tracking-wider
-            "
+        <!-----------------BODY---------------->
+        <tbody class="divide-y divide-gray-200 relative">
+          <!----Table rows---->
+          <tr
+            v-for="(record, rowIndex) in filteredData.data"
+            :key="'dqiuqfd' + rowIndex"
+            class="hover:bg-gray-50 hover:bg-opacity-50 active:bg-gray-100"
           >
-            #
-          </th>
-          <th
-            v-for="(field, columnIndex) in fieldsDisplayNames"
-            :key="columnIndex"
-            scope="col"
-            class="
-              px-4
-              py-2
-              pt-3
-              text-left text-xs
-              font-medium
-              text-gray-500
-              tracking-wider
-            "
-          >
-            {{ field }}
-          </th>
-        </tr>
-      </thead>
-
-      <!-----------------BODY---------------->
-      <tbody class="divide-y divide-gray-200 relative">
-        <!----Table rows---->
-        <tr
-          v-for="(record, rowIndex) in filteredData.data"
-          :key="'dqiuqfd' + rowIndex"
-          class="hover:bg-gray-50 hover:bg-opacity-50 active:bg-gray-100"
-        >
-          <td
-            class="
-              px-4
-              py-2
-              text-left text-sm
-              whitespace-nowrap
-              font-semibold
-              text-gray-900
-            "
-          >
-            {{ filteredData.info.from + rowIndex }}
-          </td>
-          <td
-            v-for="(field, colIndex) in fields"
-            :key="rowIndex + '_' + colIndex"
-            class="
-              px-4
-              py-2
-              text-left text-sm
-              whitespace-nowrap
-              font-normal
-              text-gray-500
-            "
-          >
-            <div>
-              {{ format(field, record[field]) }}
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            <td
+              class="
+                px-4
+                py-2
+                text-left text-sm
+                whitespace-nowrap
+                font-semibold
+                text-gray-900
+              "
+            >
+              {{ filteredData.info.from + rowIndex }}
+            </td>
+            <td
+              v-for="(field, colIndex) in fields"
+              :key="rowIndex + '_' + colIndex"
+              class="
+                px-4
+                py-2
+                text-left text-sm
+                whitespace-nowrap
+                font-normal
+                text-gray-500
+              "
+            >
+              <div>
+                {{ format(field, record[field]) }}
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <div v-else class="text-gray-400 font-semibold">
@@ -164,11 +165,11 @@ export default {
           break;
 
         case "prev":
-          this.currentPage = this.currentPage - 1;
+          this.currentPage = parseInt(this.currentPage) - 1;
           break;
 
         case "next":
-          this.currentPage = this.currentPage + 1;
+          this.currentPage = parseInt(this.currentPage) + 1;
           break;
 
         case "last":
