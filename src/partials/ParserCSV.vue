@@ -99,7 +99,7 @@ export default {
                 this.validData = true;
                 this.parsedData = res;
                 this.allFields = res.meta.fields;
-                this.sortedColumns = res.meta.fields;
+                this.sortedColumns = this.allFields;
               }
 
               //Error
@@ -107,7 +107,8 @@ export default {
                 this.errors = res.errors;
                 this.validData = false;
                 this.parsedData = null;
-                this.sortedColumns = [];
+                this.allFields = [];
+                this.sortedColumns = this.allFields;
               }
 
               //Finally

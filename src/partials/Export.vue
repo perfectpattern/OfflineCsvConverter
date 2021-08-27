@@ -1,5 +1,5 @@
 <template>
-  <my-button class="bg-gray-700" @click="exportData"
+  <my-button :disabled="!validData" class="bg-gray-700" @click="exportData"
     >CONVERT & DOWNLOAD</my-button
   >
 
@@ -28,7 +28,14 @@ export default {
     SvgPending,
   },
 
-  props: ["timestampColumn", "sortedColumns", "data", "timestampSettings"],
+  props: [
+    "timestampColumn",
+    "sortedColumns",
+    "renamings",
+    "data",
+    "timestampSettings",
+    "validData",
+  ],
 
   data() {
     return {
@@ -51,12 +58,21 @@ export default {
     convertRecursively(
       data,
       sortedColumns,
+      renamings,
       callback,
       csvString = null,
       index = 0
     ) {
       //Header
-      if (csvString === null) csvString = sortedColumns.join(",") + "\n";
+      if (csvString === null) {
+        let sortedRenamedColumns = [];
+        sortedColumns.forEach((column) => {
+          sortedRenamedColumns.push(
+            renamings.hasOwnProperty(column) ? renamings[column] : column
+          );
+        });
+        csvString = sortedRenamedColumns.join(",") + "\n";
+      }
 
       //Add record
       let record = data[index];
@@ -82,6 +98,7 @@ export default {
               this.convertRecursively(
                 data,
                 sortedColumns,
+                renamings,
                 callback,
                 csvString,
                 index
@@ -96,6 +113,7 @@ export default {
           this.convertRecursively(
             data,
             sortedColumns,
+            renamings,
             callback,
             csvString,
             index
@@ -114,6 +132,7 @@ export default {
       this.convertRecursively(
         this.data,
         this.sortedColumns,
+        this.renamings,
         function (csvString) {
           this.download(csvString);
           this.preparingDownload = true;

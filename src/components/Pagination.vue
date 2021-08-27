@@ -66,12 +66,13 @@
         <span class="font-bold">{{ info.to }}</span>
         of
         <span class="font-bold">{{ info.total }}</span>
-        results
+        records
       </p>
-      <p class="text-sm text-gray-700" v-else>No results</p>
+      <p class="text-sm text-gray-700" v-else>No records</p>
     </div>
 
     <!--Page length-->
+    <div class="flex gap-x-2 items-center">
     <select
       class="
         appearance-none
@@ -95,6 +96,8 @@
         {{ record }}
       </option>
     </select>
+    per page
+    </div>
   </div>
 </template>
 

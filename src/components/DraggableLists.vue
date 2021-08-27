@@ -2,7 +2,7 @@
   <div class="flex justify-between gap-x-4">
     <div v-for="listEntry in lists" :key="listEntry.id" class="w-full">
       <!--Title-->
-      <h3 class="text-base">
+      <h3 class="text-base mb-1">
         {{ listEntry.name }} ({{ listEntry.list.length }})
       </h3>
 
@@ -36,15 +36,40 @@
               cursor-move
               bg-gray-100
               text-xs text-gray-500
-              uppercase
               w-full
               flex
               justify-between
               items-center
             "
           >
-            <div class="text-sm">
-              {{ element.name }}
+            <!--Default view-->
+            <div
+              class="flex gap-x-2 items-center"
+              v-show="
+                !renamingActive ||
+                (renamingActive && renamedOriginName !== element.name)
+              "
+            >
+              <svg-pencil
+                class="w-4 h-4 cursor-pointer"
+                @click="renameElement(element.name)"
+              />
+              <div class="text-sm">
+                {{ getDisplayName(element.name) }}
+              </div>
+            </div>
+
+            <!--Renaming view-->
+            <div
+              class="flex gap-x-2 items-center"
+              v-show="renamingActive && renamedOriginName === element.name"
+            >
+              <svg-check class="w-5 cursor-pointer text-blue-300" @click="saveRenaming" />
+              <jet-input
+                class="border px-2 py-0.5"
+                v-model="changedName"
+                @keyup.enter="saveRenaming"
+              />
             </div>
             <svg-move class="h-3 text-gray-500" />
           </div>
@@ -57,17 +82,45 @@
 <script>
 import draggable from "vuedraggable";
 import SvgMove from "/src/svg/Move.vue";
+import SvgPencil from "/src/svg/Pencil.vue";
+import SvgCheck from "/src/svg/Check.vue";
+import JetInput from "/src/components/jetstream/Input.vue";
 
 export default {
   components: {
     draggable,
     SvgMove,
+    SvgPencil,
+    SvgCheck,
+    JetInput,
+  },
+
+  data() {
+    return {
+      lists: this.initialLists,
+      drag: false,
+      dragOptions: {
+        animation: 200,
+        group: "description",
+        disabled: false,
+        ghostClass: "ghost",
+      },
+      renamingActive: false,
+      renamedOriginName: null,
+      changedName: null,
+    };
   },
 
   props: {
     height: {
       default: "h-40",
     },
+
+    renamings: {
+      default: {},
+    },
+
+    emits: ["updated-renamings"],
 
     initialLists: {
       //Demo data
@@ -103,19 +156,6 @@ export default {
     },
   },
 
-  data() {
-    return {
-      lists: this.initialLists,
-      drag: false,
-      dragOptions: {
-        animation: 200,
-        group: "description",
-        disabled: false,
-        ghostClass: "ghost",
-      },
-    };
-  },
-
   watch: {
     initialLists() {
       this.lists = this.initialLists;
@@ -128,6 +168,27 @@ export default {
       //Restict timestamp column to one entry
       //this.lists[1].list.push(this.lists[0].list.splice(1));
       this.$emit("changed", this.lists);
+    },
+
+    renameElement(originName) {
+      this.renamingActive = true;
+      this.renamedOriginName = originName;
+      this.changedName = this.getDisplayName(originName);
+    },
+
+    getDisplayName(originName) {
+      //returns the renamed name, if exists, origin name otherwise
+      return this.renamings.hasOwnProperty(originName)
+        ? this.renamings[originName]
+        : originName;
+    },
+
+    saveRenaming() {
+      this.renamings[this.renamedOriginName] = this.changedName;
+      this.renamingActive = false;
+      this.renamedOriginName = null;
+      this.changedName = null;
+      this.$emit("updated-renamings", this.renamings);
     },
   },
 };

@@ -4,7 +4,7 @@
       Offline CSV Conversion
     </div>
 
-    <div class="text-center text-lg py-2 font-semibold">
+    <div class="text-center text-lg py-2 font-semibold flex items-center justify-center gap-x-2">
       client-based conversion of
       <badge> CSV to CSV </badge>
       and

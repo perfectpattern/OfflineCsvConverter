@@ -60,19 +60,21 @@
       <!--Columns Sorting-->
       <div v-show="validData">
         <div class="flex justify-between items-center mb-4 border-b pb-2">
-          <div class="text-xl mt-8">Sort Columns</div>
+          <div class="text-xl mt-10">Sort Columns</div>
         </div>
         <columns-sorting
           :fields="allFields"
+          :renamings="renamings"
           @update:sortedColumns="updateSortedColumns"
           @update:timestampColumn="updateTimestampColumn"
+          @updated-renamings="updateRenamings"
         />
       </div>
 
       <!--Timedate parsing-->
       <div v-show="validData && timestampColumn !== null">
         <div class="flex justify-between items-center mb-4 border-b pb-2">
-          <div class="text-xl mt-8">Timestamp Settings</div>
+          <div class="text-xl mt-10">Timestamp Settings</div>
         </div>
         <timestamp-settings
           @changed="timestampSettingsChanged"
@@ -81,7 +83,7 @@
       </div>
 
       <!--Output Data Preview-->
-      <div v-show="validData">
+      <div>
         <div class="flex justify-between items-center mt-10 mb-4 border-b pb-2">
           <div class="text-xl">Output Preview</div>
           <export
@@ -89,12 +91,15 @@
             :sortedColumns="sortedColumns"
             :data="parsedData == null ? [] : parsedData.data"
             :timestampSettings="timestampSettings"
+            :validData="validData"
+            :renamings="renamings"
           />
         </div>
         <my-table
           :parsedData="parsedData"
           :validData="validData"
           :fields="sortedColumns"
+          :renamings="renamings"
           :timestampColumn="timestampColumn"
           :timestampSettings="timestampSettings"
           @timestampParsingError="setTimestampParsingError"
@@ -160,6 +165,7 @@ export default {
       validData: false,
       dateError: false,
       sortedColumns: [],
+      renamings: {},
       allFields: [],
       timestampColumn: null,
       timestampSettings: {
@@ -202,6 +208,9 @@ export default {
       this.validData = validData;
       this.errors = errors;
       this.parsedData = parsedData;
+      //console.log(parsedData);
+      //console.log(allFields);
+      //console.log(sortedColumns);
       this.allFields = allFields;
       this.sortedColumns = sortedColumns;
       this.isReset = false;
@@ -292,6 +301,12 @@ export default {
 
     updateTimestampColumn(timestampColumn) {
       this.timestampColumn = timestampColumn;
+    },
+
+    updateRenamings(renamings) {
+      console.log('Updated renamings: ');
+      console.log(renamings);
+      this.renamings = renamings;
     },
 
     timestampSettingsChanged(settings) {

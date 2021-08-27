@@ -1,5 +1,10 @@
 <template>
-  <draggable-lists :initialLists="lists" @changed="changed" />
+  <draggable-lists
+    :initialLists="lists"
+    @changed="changed"
+    :renamings="renamings"
+    @updated-renamings="updatedRenamings"
+  />
 </template>
 
 <script>
@@ -11,7 +16,13 @@ export default {
     DraggableLists,
   },
 
-  props: ["fields"],
+  props: ["fields", "renamings"],
+
+  emits: [
+    "update:sortedColumns",
+    "update:timestampColumn",
+    "updated-renamings",
+  ],
 
   data() {
     return {
@@ -84,6 +95,10 @@ export default {
 
       this.$emit("update:sortedColumns", sortedColumns);
       this.$emit("update:timestampColumn", timestampColumn);
+    },
+
+    updatedRenamings(renamings) {
+      this.$emit("updated-renamings", renamings);
     },
   },
 };

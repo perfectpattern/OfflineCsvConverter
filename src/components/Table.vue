@@ -30,7 +30,7 @@
             #
           </th>
           <th
-            v-for="(field, columnIndex) in fields"
+            v-for="(field, columnIndex) in fieldsDisplayNames"
             :key="columnIndex"
             scope="col"
             class="
@@ -40,7 +40,6 @@
               text-left text-xs
               font-medium
               text-gray-500
-              uppercase
               tracking-wider
             "
           >
@@ -63,7 +62,7 @@
               py-2
               text-left text-sm
               whitespace-nowrap
-              font-bold
+              font-semibold
               text-gray-900
             "
           >
@@ -77,7 +76,7 @@
               py-2
               text-left text-sm
               whitespace-nowrap
-              font-medium
+              font-normal
               text-gray-500
             "
           >
@@ -88,6 +87,10 @@
         </tr>
       </tbody>
     </table>
+  </div>
+
+  <div v-else class="text-gray-400 font-semibold">
+    Currently there is no data to display. Please load CSV or JSON to proceed.
   </div>
 </template>
 
@@ -103,6 +106,7 @@ export default {
     "parsedData",
     "validData",
     "fields",
+    "renamings",
     "timestampColumn",
     "timestampSettings",
   ],
@@ -112,6 +116,7 @@ export default {
       perPage: ["5", "10", "20", "50", "100", "500"],
       currentPageLength: 10,
       currentPage: 1,
+      fieldsDisplayNames: [],
       filteredData: [],
       timestampParsingError: false,
     };
@@ -130,6 +135,13 @@ export default {
     },
     fields() {
       this.fetchEntries();
+      this.updateFieldsDisplayNames();
+    },
+    renamings: {
+      deep: true,
+      handler() {
+        this.updateFieldsDisplayNames();
+      },
     },
     timestampSettings() {
       this.fetchEntries();
@@ -176,6 +188,16 @@ export default {
         this.currentPage,
         this.currentPageLength
       );
+    },
+
+    updateFieldsDisplayNames() {
+      this.fieldsDisplayNames = [];
+      for (var i = 0; i < this.fields.length; i++) {
+        let field = this.fields[i];
+        this.fieldsDisplayNames.push(
+          this.renamings.hasOwnProperty(field) ? this.renamings[field] : field
+        );
+      }
     },
 
     format(field, value) {
