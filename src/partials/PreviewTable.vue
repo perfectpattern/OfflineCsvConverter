@@ -96,9 +96,10 @@
 </template>
 
 <script>
-import Pagination from "./Pagination.vue";
+import Pagination from "/src/components/Pagination.vue";
 import SvgPending from "/src/svg/Pending.vue";
 import { helpers } from "/src/modules/helpers";
+import { formatter } from "/src/modules/formatter";
 
 export default {
   components: { Pagination, SvgPending },
@@ -202,12 +203,23 @@ export default {
     },
 
     format(field, value) {
-      if (field === this.timestampColumn) {
-        let date = helpers.parseDateString(value, this.timestampSettings);
-        if (date !== null) return date;
-        else this.timestampParsingError = true;
+      //prepare options
+      let options = {
+        isTimestamp: field === this.timestampColumn,
+        timestampSettings: this.timestampSettings,
+      };
+
+      //format value
+      let formatted = formatter.format(value, options);
+
+      //Error
+      if (formatted.error) {
+        if (options.isTimestamp) this.timestampParsingError = true;
+        return value;
       }
-      return value;
+
+      //Success
+      return formatted.value;
     },
   },
 };

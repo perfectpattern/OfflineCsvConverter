@@ -1,34 +1,8 @@
-import moment from 'moment';
-
 function sanitizeString(str) {
     str = str.replace(/[^a-z0-9áéíóúñü \.,_-]/gim, "");
     return str.trim();
 }
 
-function parseDateString(string, settings) { //parseFormat = null, returnFormat = null
-    let date = null;
-    if (settings.parsingMode === 'auto') {
-        //try default
-        date = moment(string, true);
-
-        //convert to number and try again
-        if (!date.isValid()) {
-            let number = parseFloat(string);
-            if (!isNaN(number)) date = moment(number, true);
-        }
-    }
-
-    //Given format
-    else {
-        date = moment(string, settings.parsingString);
-    }
-
-    //Error
-    if (!date.isValid()) return null;
-
-    //Successfully parsed
-    return settings.outputMode === 'auto' ? date.valueOf() : date.format(settings.outputString);
-}
 
 function extractEntries(parsedData, page = null, length = null) {
 
@@ -306,7 +280,6 @@ function bytesToString(bytes) {
 
 export const helpers = {
     sanitizeString: sanitizeString,
-    parseDateString: parseDateString,
     extractEntries: extractEntries,
     getTimeMultiplier: getTimeMultiplier,
     timespanToMs: timespanToMs,

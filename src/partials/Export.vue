@@ -19,7 +19,7 @@
 import MyButton from "/src/components/Button.vue";
 import DialogModal from "/src/components/jetstream/DialogModal.vue";
 import SvgPending from "/src/svg/Pending.vue";
-import { helpers } from "/src/modules/helpers";
+import { formatter } from "/src/modules/formatter";
 
 export default {
   components: {
@@ -49,11 +49,22 @@ export default {
 
   methods: {
     format(field, value) {
-      if (field === this.timestampColumn) {
-        let date = helpers.parseDateString(value, this.timestampSettings);
-        if (date !== null) return date;
+      //prepare options
+      let options = {
+        isTimestamp: field === this.timestampColumn,
+        timestampSettings: this.timestampSettings,
+      };
+
+      //format value
+      let formatted = formatter.format(value, options);
+
+      //Error
+      if (formatted.error) {
+        return value;
       }
-      return value;
+
+      //Success
+      return formatted.value;
     },
 
     convertRecursively(

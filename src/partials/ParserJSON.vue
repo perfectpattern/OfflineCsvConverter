@@ -23,6 +23,7 @@ export default {
       errors: null,
       validData: false,
       readRecords: 0,
+      minimalRequiredRecords: 50,
       parsedData: null,
       allFields: [],
       sortedColumns: null,
@@ -54,26 +55,47 @@ export default {
         function (resolve, reject) {
           let analysis = this.analyseJSON(json);
           let path = this.chooseJSONpath(analysis);
-          let dataNode = this.extractJSONpath(json, path);
-          let res = this.readJSONdata(dataNode);
 
-          //Success
-          if (res.errors.length == 0) {
-            this.errors = null;
-            this.validData = true;
-            this.parsedData = res;
-            this.allFields = res.meta.fields;
-            this.sortedColumns = res.meta.fields;
+          if (path !== null) {
+            let dataNode = this.extractJSONpath(json, path);
+            let res = this.readJSONdata(dataNode);
+            //Success
+            if (res.errors.length == 0) {
+              this.errors = null;
+              this.validData = true;
+              this.parsedData = res;
+              this.allFields = res.meta.fields;
+              this.sortedColumns = res.meta.fields;
+            }
+
+            //Error
+            else {
+              this.errors = res.errors;
+              this.validData = false;
+              this.parsedData = null;
+              this.sortedColumns = [];
+              this.allFields = [];
+            }
           }
 
-          //Error
+          //No valid path could be found
           else {
-            this.errors = res.errors;
+            this.errors = [
+              {
+                type: "No datasource found",
+                message:
+                  "No valid json path was found containing an array with minimal " +
+                  this.minimalRequiredRecords +
+                  " records.",
+              },
+            ];
             this.validData = false;
             this.parsedData = null;
             this.sortedColumns = [];
             this.allFields = [];
           }
+
+          //resolve
           resolve();
         }.bind(this)
       );
@@ -100,7 +122,7 @@ export default {
           length: Object.keys(obj).length,
         });
 
-        if (Object.keys(obj).length < 50) {
+        if (Object.keys(obj).length < this.minimalRequiredRecords) {
           Object.keys(obj).forEach((key) => {
             let newObj = obj[key];
             analysis = this.analyseJSON(
@@ -126,12 +148,12 @@ export default {
 
     chooseJSONpath: function (analysis) {
       let minRequiredLength = 50;
-      let maxLength = 0;
+      let maxFoundLength = 0;
       let path = null;
       analysis.forEach((entry) => {
         if (entry.length !== null && entry.length > minRequiredLength) {
-          if (entry.length > maxLength) {
-            maxLength = entry.length;
+          if (entry.length > maxFoundLength) {
+            maxFoundLength = entry.length;
             path = entry.path;
           }
         }

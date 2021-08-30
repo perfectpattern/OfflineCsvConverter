@@ -96,7 +96,7 @@
             :filename="filename"
           />
         </div>
-        <my-table
+        <preview-table
           :parsedData="parsedData"
           :validData="validData"
           :fields="sortedColumns"
@@ -124,7 +124,7 @@ import DialogModal from "./components/jetstream/DialogModal.vue";
 import MyNav from "./components/Nav.vue";
 import MySwitch from "./components/SwitchSmall.vue";
 import MyButton from "./components/Button.vue";
-import MyTable from "./components/Table.vue";
+import PreviewTable from "./partials/PreviewTable.vue";
 import FileSelector from "./components/FileSelector.vue";
 import SvgPending from "./svg/Pending.vue";
 import Errors from "./partials/Errors.vue";
@@ -143,7 +143,7 @@ export default {
     Errors,
     MyButton,
     DialogModal,
-    MyTable,
+    PreviewTable,
     SvgPending,
     FileSelector,
     ColumnsSorting,
