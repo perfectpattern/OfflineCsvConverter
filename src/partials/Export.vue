@@ -35,6 +35,7 @@ export default {
     "data",
     "timestampSettings",
     "validData",
+    "filename",
   ],
 
   data() {
@@ -148,13 +149,12 @@ export default {
     },
 
     download(content) {
-      let filename = "file.csv";
       var element = document.createElement("a");
       element.setAttribute(
         "href",
         "data:text/plain;charset=utf-8," + encodeURIComponent(content)
       );
-      element.setAttribute("download", filename);
+      element.setAttribute("download", this.filename || "dataset.csv");
 
       element.style.display = "none";
       document.body.appendChild(element);

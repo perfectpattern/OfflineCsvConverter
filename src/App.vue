@@ -93,6 +93,7 @@
             :timestampSettings="timestampSettings"
             :validData="validData"
             :renamings="renamings"
+            :filename="filename"
           />
         </div>
         <my-table
