@@ -11,15 +11,6 @@
     <!--Head Section-->
     <head-section />
 
-    <!--Switch for datatype-->
-    <!--<div class="flex justify-center mt-8">
-      <my-switch
-        v-model="dataType"
-        :data="dataTypes"
-        @update:modelValue="reset()"
-      />
-    </div>-->
-
     <div class="p-6">
       <div class="text-2xl mb-4 flex justify-between text-gray-500">
         <div>
@@ -32,7 +23,6 @@
           }}
         </div>
         <div class="flex justify-end gap-x-2">
-          <!--<div>Input {{ dataType === "csv" ? "CSV" : "JSON" }}</div>-->
           <my-button @click="reset" class="bg-red-500">Restart</my-button>
           <export
             :timestampColumn="timestampColumn"
@@ -46,16 +36,6 @@
         </div>
       </div>
 
-      <!--Tabs Navigation-->
-      <!--<my-nav
-        v-model="currentTab"
-        @update:modelValue="reset()"
-        :tabs="tabs"
-        :disabled="false"
-        class="mb-4"
-      >
-      </my-nav>-->
-
       <!--File input local-->
       <my-transition>
         <file-selector
@@ -66,14 +46,6 @@
           @read-clipboard="readClipboard"
         ></file-selector>
       </my-transition>
-
-      <!--File input api-->
-      <!--<div v-show="currentTab === 'api'">
-        <api-request
-          @data-received="apiDataReceived"
-          @request-error="requestError"
-        />
-      </div>-->
 
       <!--Errors-->
       <errors :errors="errors" />
@@ -87,14 +59,13 @@
           </div>
           <columns-sorting
             :fields="allFields"
-            :renamings="renamings"
-            @update:sortedColumns="updateSortedColumns"
-            @update:timestampColumn="updateTimestampColumn"
-            @updated-renamings="updateRenamings"
+            v-model:renamings="renamings"
+            v-model:sortedColumns="sortedColumns"
+            v-model:timestampColumn="timestampColumn"
           />
         </div>
 
-        <!--Timedate parsing-->
+        <!--Timedate parsing  @updated-renamings="updateRenamings" @update:sortedColumns="updateSortedColumns" @update:timestampColumn="updateTimestampColumn"-->
         <div v-show="timestampColumn !== null">
           <div class="flex justify-between items-center mb-4 border-b pb-2">
             <div class="text-xl mt-10">Timestamp Settings</div>
@@ -126,11 +97,6 @@
           />
         </div>
       </div>
-      <!--Loading modal-->
-      <!--<dialog-modal :show="loading">
-        <template #title>Reading...{{ readRecords }}</template>
-        <template #content><svg-pending class="h-10" /></template>
-      </dialog-modal>-->
 
       <parser-csv :input="rawCsv" @parsing-finished="parsingFinished" />
       <parser-json :input="rawJson" @parsing-finished="parsingFinished" />
@@ -198,14 +164,6 @@ export default {
         outputString: "YYYY MM DD",
       },
       timestampParsingError: false,
-      //currentTab: "local",
-      //dataType: "csv",
-
-      //dataTypes: { csv: "CSV TO CSV", json: "JSON TO CSV" },
-      /*tabs: [
-        { key: "local", name: "From Local" },
-        { key: "api", name: "From API" },
-      ],*/
       outputModes: { converted: "Converted", raw: "Original" },
       outputMode: { converted: "Converted" },
       parsedData: null,
@@ -224,7 +182,6 @@ export default {
       this.allFields = [];
       this.sortedColumns = [];
       this.renamings = {};
-      //if (this.currentTab === "api") this.dataType = "json";
       this.isReset = true;
     },
 
@@ -236,9 +193,6 @@ export default {
       this.validData = validData;
       this.errors = errors;
       this.parsedData = parsedData;
-      //console.log(parsedData);
-      //console.log(allFields);
-      //console.log(sortedColumns);
       this.allFields = allFields;
       this.sortedColumns = sortedColumns;
       this.isReset = false;
@@ -264,22 +218,6 @@ export default {
         } else {
           this.fromClipboard = true;
           this.rawCsv = clipText;
-          //if (this.dataType === "csv")
-          /*if (this.dataType === "json") {
-            try {
-              let a = JSON.parse(clipText);
-              this.rawJson = a;
-            } catch (e) {
-              this.errors = [
-                {
-                  type: "Not parsable",
-                  message:
-                    "The clipboard content could not be parsed as json. Please check console.",
-                },
-              ];
-              console.log(e);
-            }
-          }*/
         }
       });
     },
@@ -289,56 +227,6 @@ export default {
       this.reset();
       this.filename = file.name;
       this.rawCsv = file;
-
-      /*
-      //CSV: Papaparse streams the file
-      if (this.dataType === "csv") {
-        this.rawCsv = file;
-      }
-
-      //JSON: Read the file and parse as string
-      if (this.dataType === "json") {
-        const reader = new FileReader();
-        reader.onload = (res) => {
-          try {
-            let a = JSON.parse(res.target.result);
-            this.rawJson = a;
-          } catch (e) {
-            this.errors = [
-              {
-                type: "Not parsable",
-                message:
-                  "The file could not be parsed as json. Please check console.",
-              },
-            ];
-            console.log(e);
-          }
-        };
-        reader.onerror = (err) => {
-          this.errors = [
-            {
-              type: "Not readable",
-              message: "The file could not be read. Please check console.",
-            },
-          ];
-          console.log(err);
-        };
-        reader.readAsText(file);
-      }*/
-    },
-
-    updateSortedColumns(sortedColumns) {
-      this.sortedColumns = sortedColumns;
-    },
-
-    updateTimestampColumn(timestampColumn) {
-      this.timestampColumn = timestampColumn;
-    },
-
-    updateRenamings(renamings) {
-      console.log("Updated renamings: ");
-      console.log(renamings);
-      this.renamings = renamings;
     },
 
     timestampSettingsChanged(settings) {
@@ -348,27 +236,6 @@ export default {
     setTimestampParsingError(error) {
       this.timestampParsingError = error;
     },
-
-    /*apiDataReceived(data) {
-      this.reset();
-
-      if (this.dataType === "csv") this.rawCsv = data;
-      if (this.dataType === "json") {
-        this.rawJson = data;
-        console.log("Received API data:");
-        console.log(data);
-      }
-    },
-
-    requestError(error) {
-      this.reset();
-      this.errors = [
-        {
-          type: "Request error",
-          message: JSON.stringify(error),
-        },
-      ];
-    }, */
   },
 };
 </script>

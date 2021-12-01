@@ -64,7 +64,10 @@
               class="flex gap-x-2 items-center"
               v-show="renamingActive && renamedOriginName === element.name"
             >
-              <svg-check class="w-5 cursor-pointer text-blue-300" @click="saveRenaming" />
+              <svg-check
+                class="w-5 cursor-pointer text-blue-300"
+                @click="saveRenaming"
+              />
               <jet-input
                 class="border px-2 py-0.5"
                 v-model="changedName"
@@ -120,7 +123,7 @@ export default {
       default: {},
     },
 
-    emits: ["updated-renamings"],
+    emits: ["update:renamings"],
 
     initialLists: {
       //Demo data
@@ -188,7 +191,7 @@ export default {
       this.renamingActive = false;
       this.renamedOriginName = null;
       this.changedName = null;
-      this.$emit("updated-renamings", this.renamings);
+      this.$emit("update:renamings", this.renamings);
     },
   },
 };

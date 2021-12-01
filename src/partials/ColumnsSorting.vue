@@ -3,7 +3,7 @@
     :initialLists="lists"
     @changed="changed"
     :renamings="renamings"
-    @updated-renamings="updatedRenamings"
+    @update:renamings="$emit('update:renamings', $event)"
   />
 </template>
 
@@ -16,13 +16,9 @@ export default {
     DraggableLists,
   },
 
-  props: ["fields", "renamings"],
+  props: ["fields", "renamings", "sortedColumns", "timestampColumn"],
 
-  emits: [
-    "update:sortedColumns",
-    "update:timestampColumn",
-    "updated-renamings",
-  ],
+  emits: ["update:sortedColumns", "update:timestampColumn", "update:renamings"],
 
   data() {
     return {
@@ -32,7 +28,13 @@ export default {
 
   watch: {
     fields() {
-      if (this.fields.length == 0) return;
+      this.initializeLists();
+    },
+  },
+
+  methods: {
+    initializeLists() {
+      if (!Array.isArray(this.fields) || this.fields.length == 0) return;
 
       let timestampList = [];
       let columnsList = [];
@@ -77,28 +79,23 @@ export default {
         },
       ];
     },
-  },
 
-  methods: {
     changed(lists) {
-      let sortedColumns = [];
-      let timestampColumn =
+      let updatedSortedColumns = [];
+      let updatedTimestampColumn =
         lists[0].list.length > 0 ? lists[0].list[0].name : null;
 
       //Add timestamp column
-      if (timestampColumn !== null) sortedColumns.push(timestampColumn);
+      if (updatedTimestampColumn !== null)
+        updatedSortedColumns.push(updatedTimestampColumn);
 
       //Add sorted columns
       lists[1].list.forEach((col) => {
-        sortedColumns.push(col.name);
+        updatedSortedColumns.push(col.name);
       });
 
-      this.$emit("update:sortedColumns", sortedColumns);
-      this.$emit("update:timestampColumn", timestampColumn);
-    },
-
-    updatedRenamings(renamings) {
-      this.$emit("updated-renamings", renamings);
+      this.$emit("update:sortedColumns", updatedSortedColumns);
+      this.$emit("update:timestampColumn", updatedTimestampColumn);
     },
   },
 };
