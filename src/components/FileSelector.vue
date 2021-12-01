@@ -6,8 +6,7 @@
       flex
       justify-center
       px-6
-      pt-5
-      pb-6
+      py-24
       border-2 border-gray-300 border-dashed
       rounded-md
     "
@@ -41,7 +40,7 @@
       </svg>
 
       <div class="text-sm text-gray-600 justify-center">
-        <p class="font-semibold text-lg">Drag & Drop HERE</p>
+        <p class="font-semibold text-2xl">Drag & Drop CSV file HERE</p>
         <p class="">or</p>
 
         <div class="flex gap-x-2 justify-center items-center text-base">
@@ -81,8 +80,12 @@
               focus-within:outline-none
             "
           >
-            Read clipboard
+            Read from clipboard
           </div>
+        </div>
+
+        <div class="mt-2 mb-6 text-center text-xs font-semibold">
+          Limit: Few hundred MB, depending on your devices hardware performance.
         </div>
         <div v-if="text" class="text-gray-500 text-center mt-2 text-xs">
           {{ text }}

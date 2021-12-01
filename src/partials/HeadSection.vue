@@ -1,21 +1,28 @@
 <template>
   <div class="bg-gray-100 pb-3">
     <div class="text-center py-4 text-4xl font-semibold text-blue-300">
-      Offline CSV Conversion
+      CSV Converter
     </div>
 
-    <div class="text-center text-lg py-2 font-semibold flex items-center justify-center gap-x-2">
-      client-based conversion of
-      <badge> CSV to CSV </badge>
-      and
-      <badge> JSON to CSV </badge>
+    <div
+      class="
+        text-center text-lg
+        py-2
+        font-semibold
+        flex
+        items-center
+        justify-center
+        gap-x-2
+      "
+    >
+      Conversion done 100% on your device - no data upload!
     </div>
 
     <div class="mt-2 mb-6 text-center text-sm">
-      This tool is designed to quickly parse and format any CSV or JSON data up
-      to few hundred Megabytes into a target CSV format so it can be used for AutoML like e.g.
-      <a href="https://perfectpattern.de" target="_blank">aivis</a>. It is
-      purely client-based and does not save or send any data.
+      Simply format a CSV to use it for AutoML like e.g.
+      <a href="https://perfectpattern.de" target="_blank">aivis</a>. The
+      conversion happens purely client-based. No data is uploaded, saved or
+      sent.
     </div>
 
     <div class="text-xs font-semibold text-center flex justify-center mt-2">

@@ -111,6 +111,7 @@ export default {
     "renamings",
     "timestampColumn",
     "timestampSettings",
+    "outputMode",
   ],
 
   data() {
