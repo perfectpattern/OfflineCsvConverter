@@ -1,111 +1,91 @@
 <template>
-  <draggable-lists
-    v-model:lists="lists"
-    @update:lists="emitUpdates"
-    :renamings="renamings"
-    @update:renamings="$emit('update:renamings', $event)"
-  />
+  <draggable-lists :lists="lists" @update:lists="emit" />
 </template>
 
 <script>
 import DraggableLists from "/src/components/DraggableLists.vue";
-import { helpers } from "/src/modules/helpers";
 
 export default {
   components: {
     DraggableLists,
   },
 
-  props: [
-    "fields",
-    "renamings",
-    "sortedColumns",
-    "timestampColumns",
-    "removedColumns",
-  ],
+  props: ["columns"],
 
-  emits: [
-    "update:sortedColumns",
-    "update:timestampColumns",
-    "update:removedColumns",
-    "update:renamings",
-  ],
+  emits: ["update:columns"],
 
   data() {
     return {
-      lists: [],
+      lists: null,
     };
   },
 
   watch: {
-    fields() {
-      this.initializeLists();
+    columns() {
+      //Check columns
+      if (!Array.isArray(this.columns) || this.columns.length == 0)
+        this.lists = null;
+      else this.initializeLists();
     },
   },
 
   methods: {
     initializeLists() {
+      //Prepare lists
+      let listTimestamps = [];
+      let listValues = [];
+      let listRemovals = [];
+
       //convert to lists to be used in draggable
-      if (!Array.isArray(this.fields) || this.fields.length == 0) return;
-
-      let timestampList = [];
-      let columnsList = [];
-      this.fields.forEach((field, index) => {
-        //...field belongs to timestamps list
-        if (
-          (field.toLowerCase().includes("date") ||
-            field.toLowerCase().includes("time")) &&
-          timestampList.length == 0
-        ) {
-          timestampList.push({
-            name: field,
-            id: helpers.sanitizeString(field),
-          });
-          this.$emit("update:timestampColumns", field);
-        }
-
-        //...field belongs to values list
-        else {
-          columnsList.push({
-            name: field,
-            id: helpers.sanitizeString(field),
-          });
-        }
+      this.columns.forEach((column, index) => {
+        if (column.tags.includes("timestamps")) listTimestamps.push(column);
+        else if (column.tags.includes("removals")) listRemovals.push(column);
+        else listValues.push(column);
       });
 
       this.lists = [
         {
-          id: "timestamp",
-          name: "Timestamp",
-          list: timestampList,
+          id: "timestamps",
+          name: "Timestamps",
+          list: listTimestamps,
         },
         {
-          id: "sorted",
-          name: "Data Columns",
-          list: columnsList,
+          id: "values",
+          name: "Values",
+          list: listValues,
         },
         {
           id: "removals",
           name: "Removals",
-          list: [],
+          list: listRemovals,
         },
       ];
     },
 
-    emitUpdates() {
-      [
-        "update:timestampColumns",
-        "update:sortedColumns",
-        "update:removedColumns",
-      ].forEach((entry, index) => {
-        //convert back
-        let updatedList = [];
-        this.lists[index].list.forEach((col) => {
-          updatedList.push(col.name);
+    emit(lists) {
+      console.log("lists", lists);
+      let tags = ["timestamps", "values", "removals"];
+      let updatedColumns = [];
+      lists.forEach((list) => {
+        let tag = list.id;
+        list.list.forEach((column) => {
+          column.tags = this.updateTags(column.tags, tag, tags);
+          updatedColumns.push(column);
         });
-        //emit updated list
-        this.$emit(entry, updatedList);
       });
+      console.log(updatedColumns);
+      this.$emit("update:columns", updatedColumns);
+    },
+
+    updateTags(target, newTag, removes) {
+      //Push 'new' if not existing
+      if (!target.includes(newTag)) target.push(newTag);
+      let targetNew = [];
+      target.forEach((tag) => {
+        if (tag === newTag) targetNew.push(tag);
+        else if (!removes.includes(tag)) targetNew.push(tag);
+      });
+      return targetNew;
     },
   },
 };

@@ -1,6 +1,6 @@
 <template>
   <div class="flex justify-between gap-x-4">
-    <div v-for="listEntry in lists" :key="listEntry.id" class="w-full">
+    <div v-for="listEntry in listsCopy" :key="listEntry.id" class="w-full">
       <!--Title-->
       <h3 class="text-base mb-1">
         {{ listEntry.name }} ({{ listEntry.list.length }})
@@ -42,38 +42,33 @@
               items-center
             "
           >
-            <!--Default view-->
+            <!--Editing (renaming) view-->
             <div
               class="flex gap-x-2 items-center"
-              v-show="
-                !renamingActive ||
-                (renamingActive && renamedOriginName !== element.name)
-              "
-            >
-              <svg-pencil
-                class="w-4 h-4 cursor-pointer"
-                @click="renameElement(element.name)"
-              />
-              <div class="text-sm">
-                {{ getDisplayName(element.name) }}
-              </div>
-            </div>
-
-            <!--Renaming view-->
-            <div
-              class="flex gap-x-2 items-center"
-              v-show="renamingActive && renamedOriginName === element.name"
+              v-if="editingId === element.id"
             >
               <svg-check
                 class="w-5 cursor-pointer text-blue-300"
-                @click="saveRenaming"
+                @click="finishEditing"
               />
               <jet-input
                 class="border px-2 py-0.5"
-                v-model="changedName"
-                @keyup.enter="saveRenaming"
+                v-model="element.name"
+                @keyup.enter="finishEditing"
               />
             </div>
+
+            <!--Default view-->
+            <div class="flex gap-x-2 items-center" v-else>
+              <svg-pencil
+                class="w-4 h-4 cursor-pointer"
+                @click="editingId = element.id"
+              />
+              <div class="text-sm">
+                {{ element.name }}
+              </div>
+            </div>
+
             <svg-move class="h-3 text-gray-500" />
           </div>
         </template>
@@ -103,13 +98,10 @@ export default {
       default: "h-40",
     },
 
-    renamings: {
-      default: {},
-    },
-
     lists: {
+      default: null /*
       //Demo data
-      default: [
+      [
         {
           id: "l1",
           name: "List 1",
@@ -137,11 +129,11 @@ export default {
             { id: 33, name: "Item33" },
           ],
         },
-      ],
+      ],*/,
     },
   },
 
-  emits: ["update:renamings", "update:lists"],
+  emits: ["update:lists"],
 
   data() {
     return {
@@ -152,37 +144,35 @@ export default {
         disabled: false,
         ghostClass: "ghost",
       },
-      renamingActive: false,
-      renamedOriginName: null,
-      changedName: null,
+      editingId: null,
+      listsCopy: null,
     };
+  },
+
+  watch: {
+    lists() {
+      if (this.lists === null) this.listsCopy = null;
+      else {
+        if (JSON.stringify(this.lists) === JSON.stringify(this.listsCopy))
+          return; //no changes detected
+        this.listsCopy = JSON.parse(JSON.stringify(this.lists));
+      }
+    },
   },
 
   methods: {
     changed() {
       this.drag = false;
-      this.$emit("update:lists", this.lists);
+      this.emit();
     },
 
-    renameElement(originName) {
-      this.renamingActive = true;
-      this.renamedOriginName = originName;
-      this.changedName = this.getDisplayName(originName);
+    finishEditing() {
+      this.editingId = null;
+      this.emit();
     },
 
-    getDisplayName(originName) {
-      //returns the renamed name, if exists, origin name otherwise
-      return this.renamings.hasOwnProperty(originName)
-        ? this.renamings[originName]
-        : originName;
-    },
-
-    saveRenaming() {
-      this.renamings[this.renamedOriginName] = this.changedName;
-      this.renamingActive = false;
-      this.renamedOriginName = null;
-      this.changedName = null;
-      this.$emit("update:renamings", this.renamings);
+    emit() {
+      this.$emit("update:lists", this.listsCopy);
     },
   },
 };

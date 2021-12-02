@@ -61,13 +61,7 @@
           </div>
 
           <!--Columns Sorting-->
-          <columns-sorting
-            :fields="columns"
-            v-model:renamings="renamings"
-            v-model:sortedColumns="sortedColumns"
-            v-model:timestampColumns="timestampColumns"
-            v-model:removedColumns="removedColumns"
-          />
+          <columns-sorting v-model:columns="columns" />
         </div>
 
         <!--Timedate parsing-->
@@ -91,7 +85,7 @@
             <my-switch v-model="outputMode" :data="outputModes" />
           </div>
           <!--Preview table-->
-          <preview-table
+          <!--<preview-table
             :parsedData="parsedData"
             :validData="validData"
             :fields="sortedColumns"
@@ -99,7 +93,7 @@
             :timestampColumns="timestampColumns"
             :timestampSettings="timestampSettings"
             @timestampParsingError="setTimestampParsingError"
-          />
+          />-->
         </div>
       </div>
 
