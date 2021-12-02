@@ -1,126 +1,132 @@
 <template>
-  <div class="flex justify-between gap-x-4">
+  <div
+    class="flex justify-between gap-x-4"
+    v-if="rules.hasOwnProperty('timestamp')"
+  >
+    <!--Parse as-->
     <div class="w-full">
-      <div class="mb-2">
-        Parsing (see
-        <a
-          class="text-blue-400 hover:text-blue-800"
-          href="https://momentjs.com/docs/#/parsing/string-format/"
-          target="_blank"
-          >moment.js</a
-        >
-        )
+      <div class="mb-2 flex justify-between">
+        <div class="text-sm font-semibold">Parsing</div>
+        <my-switch
+          :options="inputModes"
+          v-model="rules.timestamp.app.parsingMode"
+          @update:modelValue="$emit('update:rules', rules)"
+        />
       </div>
       <dashed-box
-        class="gap-x-4 items-center"
+        class="gap-x-4 items-center h-32"
         :class="{
           'border-red-500': timestampParsingError,
           'border-gray-500': !timestampParsingError,
         }"
       >
-        <div>
-          <div class="mb-1">Mode:</div>
-          <select
-            class="
-              py-1
-              border-gray-300
-              focus:outline-none focus:ring-0 focus:border-blue-200
-              rounded-md
-              shadow-sm
-            "
-            :modelValue="timestampSettings.parsingMode"
-            @change="emit('parsingMode', $event.target.value)"
-          >
-            <option value="auto">Auto</option>
-            <option value="custom">Custom</option>
-          </select>
-        </div>
-
-        <div>
-          <div class="mb-1">String:</div>
+        <div class="w-full">
+          <div class="mb-1">Input format</div>
           <jet-input
-            v-show="timestampSettings.parsingMode === 'auto'"
-            class="rounded-md py-1"
+            v-show="rules.timestamp.app.parsingMode.id === 'auto'"
+            class="rounded-md py-1 w-full"
             type="text"
             :disabled="true"
             placeholder="auto mode"
           />
           <jet-input
-            v-show="timestampSettings.parsingMode === 'custom'"
-            class="rounded-md py-1"
+            v-show="rules.timestamp.app.parsingMode.id === 'custom'"
+            class="rounded-md py-1 w-full"
             type="text"
-            :disabled="timestampSettings.parsingMode === 'auto'"
-            placeholder="DD MM YYYY hh:mm:ss"
-            :modelValue="timestampSettings.parsingString"
-            @update:modelValue="emit('parsingString', $event)"
-          />
-        </div>
-
-        <div>
-          <!--Placeholder-->
-          <div class="mb-1">&nbsp;</div>
-
-          <div
-            v-show="timestampParsingError"
-            class="text-red-500 text-xs font-bold"
-          >
-            At least one date in the sample could not be parsed.
-          </div>
-          <svg-check
-            v-show="!timestampParsingError"
-            class="text-green-600 h-7"
+            v-model="rules.timestamp.app.parsingString"
+            @update:modelValue="$emit('update:rules', rules)"
           />
         </div>
       </dashed-box>
     </div>
 
+    <!--Format as -->
     <div class="w-full">
-      <div class="mb-2">
-        Format as (see
-        <a
-          class="text-blue-400 hover:text-blue-800"
-          href="https://momentjs.com/docs/#/parsing/string-format/"
-          target="_blank"
-          >moment.js</a
-        >
-        )
+      <div class="mb-2 flex justify-between">
+        <div class="text-sm font-semibold">Format as</div>
+        <my-switch
+          :options="outputModes"
+          v-model="rules.timestamp.app.outputMode"
+          @update:modelValue="$emit('update:rules', rules)"
+        />
       </div>
-      <dashed-box class="gap-x-4 items-center border-gray-500">
-        <div>
-          <div class="mb-1">Mode:</div>
-          <select
-            class="
-              py-1
-              border-gray-300
-              focus:outline-none focus:ring-0 focus:border-blue-200
-              rounded-md
-              shadow-sm
-            "
-            :modelValue="timestampSettings.outputMode"
-            @change="emit('outputMode', $event.target.value)"
-          >
-            <option value="auto">Unix Timestamp (ms)</option>
-            <option value="custom">Custom</option>
-          </select>
-        </div>
-
-        <div>
-          <div class="mb-1">String:</div>
+      <dashed-box class="gap-x-4 items-center border-gray-500 h-32">
+        <div class="w-full">
+          <div class="mb-1">Output format</div>
           <jet-input
-            v-show="timestampSettings.outputMode === 'auto'"
-            class="rounded-md py-1"
+            v-show="rules.timestamp.app.outputMode.id === 'auto'"
+            class="rounded-md py-1 w-full"
             type="text"
             :disabled="true"
-            placeholder="auto mode"
+            placeholder="Unix Epoch [ms]"
           />
           <jet-input
-            v-show="timestampSettings.outputMode === 'custom'"
-            class="rounded-md py-1"
+            v-show="rules.timestamp.app.outputMode.id === 'custom'"
+            class="rounded-md py-1 w-full"
             type="text"
-            placeholder="YYYY MM DD"
-            :modelValue="timestampSettings.outputString"
-            @update:modelValue="emit('outputString', $event)"
+            v-model="rules.timestamp.app.outputString"
+            @update:modelValue="$emit('update:rules', rules)"
           />
+        </div>
+      </dashed-box>
+    </div>
+
+    <!--Preview box-->
+    <div class="w-full">
+      <div class="mb-2 flex justify-between">
+        <div class="text-sm font-semibold">Preview</div>
+      </div>
+      <dashed-box class="border-gray-500 block h-32">
+        <div class="w-full">
+          <div class="w-full">
+            <div class="flex justify-between items-center">
+              <div class="mb-1">Input</div>
+              <div class="flex justify-end font-semibold text-sm">
+                {{ raw }}
+              </div>
+            </div>
+            <div class="flex justify-between items-center">
+              <div class="mb-1">Output</div>
+              <div class="flex justify-end font-semibold text-sm">
+                {{ converted }}
+              </div>
+            </div>
+          </div>
+
+          <!--Preview navigator-->
+          <div class="flex justify-between items-center mt-1 border-t pt-1">
+            <div class="mb-1">Row index</div>
+            <div class="flex justify-center items-center gap-x-2 text-gray-500">
+              <svg-chevron-left-double
+                class="h-4 cursor-pointer hover:text-gray-800"
+                @click="previewIndex = 0"
+              />
+              <svg-chevron-left
+                class="h-4 cursor-pointer hover:text-gray-800"
+                @click="if (previewIndex > 0) previewIndex--;"
+              />
+              <input
+                v-model="previewIndex"
+                class="
+                  p-0
+                  m-0
+                  w-20
+                  border-none
+                  font-semibold
+                  text-center
+                  bg-opacity-0
+                "
+              />
+              <svg-chevron-right
+                class="h-4 cursor-pointer hover:text-gray-800"
+                @click="if (previewIndex < parsedData.length) previewIndex++;"
+              />
+              <svg-chevron-right-double
+                class="h-4 cursor-pointer hover:text-gray-800"
+                @click="previewIndex = parsedData.length - 1"
+              />
+            </div>
+          </div>
         </div>
       </dashed-box>
     </div>
@@ -129,25 +135,39 @@
 
 <script>
 import SvgCheck from "/src/svg/Check.vue";
+import SvgChevronLeft from "/src/svg/ChevronLeft.vue";
+import SvgChevronLeftDouble from "/src/svg/ChevronLeftDouble.vue";
+import SvgChevronRight from "/src/svg/ChevronRight.vue";
+import SvgChevronRightDouble from "/src/svg/ChevronRightDouble.vue";
 import JetInput from "/src/components/jetstream/Input.vue";
 import DashedBox from "/src/components/DashedBox.vue";
+import MySwitch from "/src/components/SwitchSmall.vue";
+import { helpers } from "/src/modules/helpers";
+import { formatter } from "/src/modules/formatter";
 
 export default {
   components: {
     SvgCheck,
+    SvgChevronLeft,
+    SvgChevronLeftDouble,
+    SvgChevronRight,
+    SvgChevronRightDouble,
     JetInput,
     DashedBox,
+    MySwitch,
   },
 
   props: {
-    timestampSettings: {
+    rules: {
       type: Object,
-      default: {
-        parsingMode: "auto",
-        parsingString: "DD MM YYYY hh:mm:ss",
-        outputMode: "auto",
-        outputString: "YYYY MM DD",
-      },
+    },
+
+    columns: {
+      default: null,
+    },
+
+    parsedData: {
+      default: null,
     },
 
     timestampParsingError: {
@@ -156,14 +176,71 @@ export default {
     },
   },
 
-  emits: ["update:timestampSettings"],
+  emits: ["update:rules"],
+
+  data() {
+    return {
+      inputModes: [
+        { id: "auto", label: "auto" },
+        { id: "custom", label: "custom" },
+      ],
+      outputModes: [
+        { id: "auto", label: "auto" },
+        { id: "custom", label: "custom" },
+      ],
+      previewIndex: 0,
+    };
+  },
+
+  watch: {
+    columns() {
+      let timestampColumns = helpers.getColumnsByTag(this.columns, "timestamp");
+      //initialize timestamp rule
+      if (!this.rules.hasOwnProperty("timestamp"))
+        this.rules["timestamp"] = {
+          columns: timestampColumns,
+          code: null,
+          create: false,
+          name: null,
+          app: {
+            parsingMode: this.inputModes[0],
+            parsingString: "DD.MM.YYYY HH:mm:ss",
+            outputMode: this.outputModes[0],
+            outputString: "YYYY-MM-DD hh:mm:ss",
+          },
+        };
+      else this.rules.timestamp.columns = timestampColumns;
+
+      //emit
+      this.$emit("update:rules", this.rules);
+    },
+  },
+
+  computed: {
+    raw() {
+      if (this.parsedData === null || !this.rules.hasOwnProperty("timestamp"))
+        return null;
+      let row = this.parsedData[this.previewIndex];
+      let values = [];
+      this.rules.timestamp.columns.forEach((column) => {
+        values.push(row[column.field]);
+      });
+      return values.join(" ");
+    },
+
+    converted() {
+      if (this.raw === null) return null;
+      let response = formatter.format(this.raw, {
+        isTimestamp: true,
+        timestampSettings: this.rules.timestamp.app,
+      });
+      if (response.error) return "ERROR";
+      return response.value;
+    },
+  },
 
   methods: {
-    emit(key, value) {
-      let newTimestampSettings = this.timestampSettings;
-      newTimestampSettings[key] = value;
-      this.$emit("update:timestampSettings", newTimestampSettings);
-    },
+    applyTimestampRule(rules, value) {},
   },
 };
 </script>

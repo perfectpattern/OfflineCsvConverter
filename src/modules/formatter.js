@@ -2,7 +2,7 @@ import moment from 'moment';
 
 function parseDateString(string, settings) { //parseFormat = null, returnFormat = null
     let date = null;
-    if (settings.parsingMode === 'auto') {
+    if (settings.parsingMode.id === 'auto') {
         //try default
         date = moment(string, true);
 
@@ -22,7 +22,7 @@ function parseDateString(string, settings) { //parseFormat = null, returnFormat 
     if (!date.isValid()) return null;
 
     //Successfully parsed
-    return settings.outputMode === 'auto' ? date.valueOf() : date.format(settings.outputString);
+    return settings.outputMode.id === 'auto' ? date.valueOf() : date.format(settings.outputString);
 }
 
 function format(value, options = {

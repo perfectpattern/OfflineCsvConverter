@@ -38,24 +38,24 @@ export default {
 
       //convert to lists to be used in draggable
       this.columns.forEach((column, index) => {
-        if (column.tags.includes("timestamps")) listTimestamps.push(column);
-        else if (column.tags.includes("removals")) listRemovals.push(column);
+        if (column.tags.includes("timestamp")) listTimestamps.push(column);
+        else if (column.tags.includes("removal")) listRemovals.push(column);
         else listValues.push(column);
       });
 
       this.lists = [
         {
-          id: "timestamps",
+          id: "_timestamps",
           name: "Timestamps",
           list: listTimestamps,
         },
         {
-          id: "values",
+          id: "_values",
           name: "Values",
           list: listValues,
         },
         {
-          id: "removals",
+          id: "_removals",
           name: "Removals",
           list: listRemovals,
         },
@@ -63,17 +63,16 @@ export default {
     },
 
     emit(lists) {
-      console.log("lists", lists);
-      let tags = ["timestamps", "values", "removals"];
+      //console.log("lists", lists);
+      let tags = ["timestamp", "value", "removal"];
       let updatedColumns = [];
-      lists.forEach((list) => {
-        let tag = list.id;
+      lists.forEach((list, index) => {
+        let tag = tags[index];
         list.list.forEach((column) => {
           column.tags = this.updateTags(column.tags, tag, tags);
           updatedColumns.push(column);
         });
       });
-      console.log(updatedColumns);
       this.$emit("update:columns", updatedColumns);
     },
 

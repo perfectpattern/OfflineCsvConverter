@@ -3,6 +3,14 @@ function sanitizeString(str) {
     return str.trim().toLowerCase();
 }
 
+function getColumnsByTag(columns, tag) {
+    let columnsWithTag = [];
+    for (var i = 0; i < columns.length; i++) {
+        let column = columns[i];
+        if (column.tags.includes(tag)) columnsWithTag.push(column);
+    }
+    return columnsWithTag;
+}
 
 function extractEntries(parsedData, page = null, length = null) {
 
@@ -280,6 +288,7 @@ function bytesToString(bytes) {
 
 export const helpers = {
     sanitizeString: sanitizeString,
+    getColumnsByTag: getColumnsByTag,
     extractEntries: extractEntries,
     getTimeMultiplier: getTimeMultiplier,
     timespanToMs: timespanToMs,

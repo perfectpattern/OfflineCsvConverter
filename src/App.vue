@@ -27,7 +27,7 @@
           <my-button @click="reset" class="bg-red-500">Restart</my-button>
 
           <!--Export-->
-          <export
+          <!--<export
             :timestampColumns="timestampColumns"
             :sortedColumns="sortedColumns"
             :data="parsedData == null ? [] : parsedData.data"
@@ -35,7 +35,7 @@
             :validData="validData"
             :renamings="renamings"
             :filename="filename"
-          />
+          />-->
         </div>
       </div>
 
@@ -66,11 +66,25 @@
 
         <!--Timedate parsing-->
         <div v-show="timestampColumns.length > 0">
-          <div class="flex justify-between items-center mb-4 border-b pb-2">
-            <div class="text-xl mt-10">Timestamp Settings</div>
+          <div
+            class="flex justify-between items-center mb-4 border-b pb-2 mt-10"
+          >
+            <div class="text-xl">Timestamp Settings</div>
+            <div>
+              (see
+              <a
+                class="text-blue-400 hover:text-blue-800"
+                href="https://momentjs.com/docs/#/parsing/string-format/"
+                target="_blank"
+                >moment.js</a
+              >
+              )
+            </div>
           </div>
           <timestamp-settings
-            v-model:timestampSettings="timestampSettings"
+            v-model:rules="rules"
+            :columns="columns"
+            :parsedData="parsedData"
             :timestampParsingError="timestampParsingError"
           />
         </div>
@@ -88,9 +102,7 @@
           <!--<preview-table
             :parsedData="parsedData"
             :validData="validData"
-            :fields="sortedColumns"
-            :renamings="renamings"
-            :timestampColumns="timestampColumns"
+            :columns="columns"
             :timestampSettings="timestampSettings"
             @timestampParsingError="setTimestampParsingError"
           />-->
@@ -118,6 +130,7 @@ import Export from "./partials/Export.vue";
 import TimestampSettings from "./partials/TimestampSettings.vue";
 import HeadSection from "./partials/HeadSection.vue";
 import ParserCsv from "./partials/ParserCSV.vue";
+import { helpers } from "/src/modules/helpers";
 
 export default {
   components: {
@@ -144,11 +157,8 @@ export default {
       errors: null,
       validData: false,
       fromClipboard: false,
-      sortedColumns: [],
-      removedColumns: [],
-      renamings: {},
       columns: [],
-      timestampColumns: [],
+      rules: {},
       timestampSettings: {
         parsingMode: "auto",
         parsingString: "DD MM YYYY hh:mm:ss",
@@ -161,6 +171,12 @@ export default {
       parsedData: null,
       rawCsv: null,
     };
+  },
+
+  computed: {
+    timestampColumns() {
+      return helpers.getColumnsByTag(this.columns, "timestamp");
+    },
   },
 
   methods: {
@@ -184,7 +200,6 @@ export default {
       this.errors = errors;
       this.parsedData = parsedData;
       this.columns = columns;
-      console.log(this.columns);
 
       this.rawCsv = null;
       this.validData = errors === null;

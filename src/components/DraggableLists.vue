@@ -151,6 +151,7 @@ export default {
 
   watch: {
     lists() {
+      console.log("lists changes");
       if (this.lists === null) this.listsCopy = null;
       else {
         if (JSON.stringify(this.lists) === JSON.stringify(this.listsCopy))
