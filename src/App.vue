@@ -23,9 +23,12 @@
           }}
         </div>
         <div class="flex justify-end gap-x-2">
+          <!--Reset-->
           <my-button @click="reset" class="bg-red-500">Restart</my-button>
+
+          <!--Export-->
           <export
-            :timestampColumn="timestampColumn"
+            :timestampColumns="timestampColumns"
             :sortedColumns="sortedColumns"
             :data="parsedData == null ? [] : parsedData.data"
             :timestampSettings="timestampSettings"
@@ -44,7 +47,7 @@
           :filename="filename"
           @file-selected="fileSelected"
           @read-clipboard="readClipboard"
-        ></file-selector>
+        />
       </my-transition>
 
       <!--Errors-->
@@ -52,26 +55,28 @@
 
       <!--If valid data-->
       <div v-show="validData">
-        <!--Columns Sorting-->
         <div>
           <div class="flex justify-between items-center mb-4 border-b pb-2">
             <div class="text-xl mt-10">Sort Columns</div>
           </div>
+
+          <!--Columns Sorting-->
           <columns-sorting
             :fields="allFields"
             v-model:renamings="renamings"
             v-model:sortedColumns="sortedColumns"
-            v-model:timestampColumn="timestampColumn"
+            v-model:timestampColumns="timestampColumns"
+            v-model:removedColumns="removedColumns"
           />
         </div>
 
-        <!--Timedate parsing  @updated-renamings="updateRenamings" @update:sortedColumns="updateSortedColumns" @update:timestampColumn="updateTimestampColumn"-->
-        <div v-show="timestampColumn !== null">
+        <!--Timedate parsing-->
+        <div v-show="timestampColumns.length > 0">
           <div class="flex justify-between items-center mb-4 border-b pb-2">
             <div class="text-xl mt-10">Timestamp Settings</div>
           </div>
           <timestamp-settings
-            @changed="timestampSettingsChanged"
+            v-model:timestampSettings="timestampSettings"
             :timestampParsingError="timestampParsingError"
           />
         </div>
@@ -85,21 +90,21 @@
 
             <my-switch v-model="outputMode" :data="outputModes" />
           </div>
+          <!--Preview table-->
           <preview-table
             :parsedData="parsedData"
             :validData="validData"
-            :outputMode="outputMode"
             :fields="sortedColumns"
             :renamings="renamings"
-            :timestampColumn="timestampColumn"
+            :timestampColumns="timestampColumns"
             :timestampSettings="timestampSettings"
             @timestampParsingError="setTimestampParsingError"
           />
         </div>
       </div>
 
+      <!--CSV Parser-->
       <parser-csv :input="rawCsv" @parsing-finished="parsingFinished" />
-      <parser-json :input="rawJson" @parsing-finished="parsingFinished" />
     </div>
   </div>
 </template>
@@ -117,46 +122,39 @@ import Errors from "./partials/Errors.vue";
 import ColumnsSorting from "./partials/ColumnsSorting.vue";
 import Export from "./partials/Export.vue";
 import TimestampSettings from "./partials/TimestampSettings.vue";
-import ApiRequest from "./partials/ApiRequest.vue";
 import HeadSection from "./partials/HeadSection.vue";
 import ParserCsv from "./partials/ParserCSV.vue";
-import ParserJson from "./partials/ParserJSON.vue";
 
 export default {
   components: {
+    DialogModal,
     MyNav,
     MySwitch,
     MyTransition,
-    Errors,
     MyButton,
-    DialogModal,
     PreviewTable,
     SvgPending,
+    Errors,
     FileSelector,
     ColumnsSorting,
     Export,
     TimestampSettings,
     HeadSection,
     ParserCsv,
-    ParserJson,
-    ApiRequest,
   },
 
   data() {
     return {
-      //loading: false,
-      readRecords: 0,
-      isReset: true,
       message: null,
       filename: null,
       errors: null,
       validData: false,
-      dateError: false,
       fromClipboard: false,
       sortedColumns: [],
+      removedColumns: [],
       renamings: {},
       allFields: [],
-      timestampColumn: null,
+      timestampColumns: [],
       timestampSettings: {
         parsingMode: "auto",
         parsingString: "DD MM YYYY hh:mm:ss",
@@ -168,7 +166,6 @@ export default {
       outputMode: { converted: "Converted" },
       parsedData: null,
       rawCsv: null,
-      rawJson: null,
     };
   },
 
@@ -182,7 +179,6 @@ export default {
       this.allFields = [];
       this.sortedColumns = [];
       this.renamings = {};
-      this.isReset = true;
     },
 
     receivedRawData(data) {
@@ -195,10 +191,7 @@ export default {
       this.parsedData = parsedData;
       this.allFields = allFields;
       this.sortedColumns = sortedColumns;
-      this.isReset = false;
-
       this.rawCsv = null;
-      this.rawJson = null;
     },
 
     readClipboard() {
@@ -214,7 +207,6 @@ export default {
                 "']. Please try again.",
             },
           ];
-          this.isReset = false;
         } else {
           this.fromClipboard = true;
           this.rawCsv = clipText;
@@ -227,10 +219,6 @@ export default {
       this.reset();
       this.filename = file.name;
       this.rawCsv = file;
-    },
-
-    timestampSettingsChanged(settings) {
-      this.timestampSettings = settings;
     },
 
     setTimestampParsingError(error) {

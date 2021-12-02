@@ -24,14 +24,12 @@
             class="
               py-1
               border-gray-300
-              focus:outline-none
-              focus:ring-0
-              focus:border-blue-200
+              focus:outline-none focus:ring-0 focus:border-blue-200
               rounded-md
               shadow-sm
             "
-            v-model="parsingMode"
-            @change="changed()"
+            :modelValue="timestampSettings.parsingMode"
+            @change="emit('parsingMode', $event.target.value)"
           >
             <option value="auto">Auto</option>
             <option value="custom">Custom</option>
@@ -41,20 +39,20 @@
         <div>
           <div class="mb-1">String:</div>
           <jet-input
-            v-show="parsingMode === 'auto'"
+            v-show="timestampSettings.parsingMode === 'auto'"
             class="rounded-md py-1"
             type="text"
             :disabled="true"
             placeholder="auto mode"
           />
           <jet-input
-            v-show="parsingMode === 'custom'"
+            v-show="timestampSettings.parsingMode === 'custom'"
             class="rounded-md py-1"
             type="text"
-            :disabled="parsingMode === 'auto'"
+            :disabled="timestampSettings.parsingMode === 'auto'"
             placeholder="DD MM YYYY hh:mm:ss"
-            v-model="parsingString"
-            @update:modelValue="changed()"
+            :modelValue="timestampSettings.parsingString"
+            @update:modelValue="emit('parsingString', $event)"
           />
         </div>
 
@@ -94,14 +92,12 @@
             class="
               py-1
               border-gray-300
-              focus:outline-none
-              focus:ring-0
-              focus:border-blue-200
+              focus:outline-none focus:ring-0 focus:border-blue-200
               rounded-md
               shadow-sm
             "
-            v-model="outputMode"
-            @change="changed()"
+            :modelValue="timestampSettings.outputMode"
+            @change="emit('outputMode', $event.target.value)"
           >
             <option value="auto">Unix Timestamp (ms)</option>
             <option value="custom">Custom</option>
@@ -111,19 +107,19 @@
         <div>
           <div class="mb-1">String:</div>
           <jet-input
-            v-show="outputMode === 'auto'"
+            v-show="timestampSettings.outputMode === 'auto'"
             class="rounded-md py-1"
             type="text"
             :disabled="true"
             placeholder="auto mode"
           />
           <jet-input
-            v-show="outputMode === 'custom'"
+            v-show="timestampSettings.outputMode === 'custom'"
             class="rounded-md py-1"
             type="text"
             placeholder="YYYY MM DD"
-            v-model="outputString"
-            @change="changed()"
+            :modelValue="timestampSettings.outputString"
+            @update:modelValue="emit('outputString', $event)"
           />
         </div>
       </dashed-box>
@@ -143,25 +139,31 @@ export default {
     DashedBox,
   },
 
-  props: ["timestampParsingError"],
+  props: {
+    timestampSettings: {
+      type: Object,
+      default: {
+        parsingMode: "auto",
+        parsingString: "DD MM YYYY hh:mm:ss",
+        outputMode: "auto",
+        outputString: "YYYY MM DD",
+      },
+    },
 
-  data() {
-    return {
-      parsingMode: "auto",
-      parsingString: "DD MM YYYY hh:mm:ss",
-      outputMode: "auto",
-      outputString: "YYYY MM DD",
-    };
+    timestampParsingError: {
+      type: Boolean,
+      default: false,
+    },
   },
 
+  emits: ["update:timestampSettings"],
+
   methods: {
-    changed() {
-      this.$emit("changed", {
-        parsingMode: this.parsingMode,
-        parsingString: this.parsingString,
-        outputMode: this.outputMode,
-        outputString: this.outputString,
-      });
+    emit(key, value) {
+      console.log(key, value);
+      let newTimestampSettings = this.timestampSettings;
+      newTimestampSettings[key] = value;
+      this.$emit("update:timestampSettings", newTimestampSettings);
     },
   },
 };

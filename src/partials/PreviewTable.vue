@@ -109,7 +109,7 @@ export default {
     "validData",
     "fields",
     "renamings",
-    "timestampColumn",
+    "timestampColumns",
     "timestampSettings",
     "outputMode",
   ],
@@ -206,7 +206,7 @@ export default {
     format(field, value) {
       //prepare options
       let options = {
-        isTimestamp: field === this.timestampColumn,
+        isTimestamp: field === this.timestampColumns,
         timestampSettings: this.timestampSettings,
       };
 

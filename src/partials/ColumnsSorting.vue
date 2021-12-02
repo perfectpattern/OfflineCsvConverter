@@ -1,7 +1,7 @@
 <template>
   <draggable-lists
-    :initialLists="lists"
-    @changed="changed"
+    v-model:lists="lists"
+    @update:lists="emitUpdates"
     :renamings="renamings"
     @update:renamings="$emit('update:renamings', $event)"
   />
@@ -16,9 +16,20 @@ export default {
     DraggableLists,
   },
 
-  props: ["fields", "renamings", "sortedColumns", "timestampColumn"],
+  props: [
+    "fields",
+    "renamings",
+    "sortedColumns",
+    "timestampColumns",
+    "removedColumns",
+  ],
 
-  emits: ["update:sortedColumns", "update:timestampColumn", "update:renamings"],
+  emits: [
+    "update:sortedColumns",
+    "update:timestampColumns",
+    "update:removedColumns",
+    "update:renamings",
+  ],
 
   data() {
     return {
@@ -34,12 +45,13 @@ export default {
 
   methods: {
     initializeLists() {
+      //convert to lists to be used in draggable
       if (!Array.isArray(this.fields) || this.fields.length == 0) return;
 
       let timestampList = [];
       let columnsList = [];
       this.fields.forEach((field, index) => {
-        //Timestamp list
+        //...field belongs to timestamps list
         if (
           (field.toLowerCase().includes("date") ||
             field.toLowerCase().includes("time")) &&
@@ -49,10 +61,10 @@ export default {
             name: field,
             id: helpers.sanitizeString(field),
           });
-          this.$emit("update:timestampColumn", field);
+          this.$emit("update:timestampColumns", field);
         }
 
-        //Columns list
+        //...field belongs to values list
         else {
           columnsList.push({
             name: field,
@@ -80,22 +92,20 @@ export default {
       ];
     },
 
-    changed(lists) {
-      let updatedSortedColumns = [];
-      let updatedTimestampColumn =
-        lists[0].list.length > 0 ? lists[0].list[0].name : null;
-
-      //Add timestamp column
-      if (updatedTimestampColumn !== null)
-        updatedSortedColumns.push(updatedTimestampColumn);
-
-      //Add sorted columns
-      lists[1].list.forEach((col) => {
-        updatedSortedColumns.push(col.name);
+    emitUpdates() {
+      [
+        "update:timestampColumns",
+        "update:sortedColumns",
+        "update:removedColumns",
+      ].forEach((entry, index) => {
+        //convert back
+        let updatedList = [];
+        this.lists[index].list.forEach((col) => {
+          updatedList.push(col.name);
+        });
+        //emit updated list
+        this.$emit(entry, updatedList);
       });
-
-      this.$emit("update:sortedColumns", updatedSortedColumns);
-      this.$emit("update:timestampColumn", updatedTimestampColumn);
     },
   },
 };

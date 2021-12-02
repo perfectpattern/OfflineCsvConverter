@@ -98,22 +98,6 @@ export default {
     JetInput,
   },
 
-  data() {
-    return {
-      lists: this.initialLists,
-      drag: false,
-      dragOptions: {
-        animation: 200,
-        group: "description",
-        disabled: false,
-        ghostClass: "ghost",
-      },
-      renamingActive: false,
-      renamedOriginName: null,
-      changedName: null,
-    };
-  },
-
   props: {
     height: {
       default: "h-40",
@@ -123,9 +107,7 @@ export default {
       default: {},
     },
 
-    emits: ["update:renamings"],
-
-    initialLists: {
+    lists: {
       //Demo data
       default: [
         {
@@ -159,18 +141,27 @@ export default {
     },
   },
 
-  watch: {
-    initialLists() {
-      this.lists = this.initialLists;
-    },
+  emits: ["update:renamings", "update:lists"],
+
+  data() {
+    return {
+      drag: false,
+      dragOptions: {
+        animation: 200,
+        group: "description",
+        disabled: false,
+        ghostClass: "ghost",
+      },
+      renamingActive: false,
+      renamedOriginName: null,
+      changedName: null,
+    };
   },
 
   methods: {
     changed() {
       this.drag = false;
-      //Restict timestamp column to one entry
-      //this.lists[1].list.push(this.lists[0].list.splice(1));
-      this.$emit("changed", this.lists);
+      this.$emit("update:lists", this.lists);
     },
 
     renameElement(originName) {

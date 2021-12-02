@@ -29,7 +29,7 @@ export default {
   },
 
   props: [
-    "timestampColumn",
+    "timestampColumns",
     "sortedColumns",
     "renamings",
     "data",
@@ -51,7 +51,7 @@ export default {
     format(field, value) {
       //prepare options
       let options = {
-        isTimestamp: field === this.timestampColumn,
+        isTimestamp: field === this.timestampColumns,
         timestampSettings: this.timestampSettings,
       };
 
