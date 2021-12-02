@@ -62,7 +62,7 @@
 
           <!--Columns Sorting-->
           <columns-sorting
-            :fields="allFields"
+            :fields="columns"
             v-model:renamings="renamings"
             v-model:sortedColumns="sortedColumns"
             v-model:timestampColumns="timestampColumns"
@@ -153,7 +153,7 @@ export default {
       sortedColumns: [],
       removedColumns: [],
       renamings: {},
-      allFields: [],
+      columns: [],
       timestampColumns: [],
       timestampSettings: {
         parsingMode: "auto",
@@ -176,7 +176,7 @@ export default {
       this.parsedData = null;
       this.filename = null;
       this.fromClipboard = false;
-      this.allFields = [];
+      this.columns = [];
       this.sortedColumns = [];
       this.renamings = {};
     },
@@ -185,13 +185,15 @@ export default {
       this.rawData = data;
     },
 
-    parsingFinished(validData, errors, parsedData, allFields, sortedColumns) {
-      this.validData = validData;
+    //Entry point for parsed data
+    parsingFinished(errors, parsedData, columns) {
       this.errors = errors;
       this.parsedData = parsedData;
-      this.allFields = allFields;
-      this.sortedColumns = sortedColumns;
+      this.columns = columns;
+      console.log(this.columns);
+
       this.rawCsv = null;
+      this.validData = errors === null;
     },
 
     readClipboard() {

@@ -10,6 +10,7 @@
 import papa from "papaparse";
 import DialogModal from "/src/components/jetstream/DialogModal.vue";
 import SvgPending from "/src/svg/Pending.vue";
+import { helpers } from "/src/modules/helpers";
 
 export default {
   components: { DialogModal, SvgPending },
@@ -22,110 +23,128 @@ export default {
     return {
       loading: false,
       errors: null,
-      validData: false,
       readRecords: 0,
       parsedData: null,
-      allFields: [],
-      sortedColumns: [],
+      columns: null,
+      progressUpdateEach: 10000,
     };
   },
 
   watch: {
     input() {
+      //Start this parsing modul as soon as input is not null
       if (this.input === null) return;
       this.loading = true;
-      this.parse(this.input).then(() => {
-        this.$emit(
-          "parsing-finished",
-          this.validData,
-          this.errors,
-          this.parsedData,
-          this.allFields,
-          this.sortedColumns
-        );
-        this.loading = false;
-      });
+      this.parse();
     },
   },
 
   methods: {
-    parse(input) {
+    parse() {
       this.errors = null;
-      this.validData = false;
 
-      return new Promise(
-        function (resolve, reject) {
-          let j = 0;
+      let j = 0;
 
-          let res = {
-            data: [],
-            errors: [],
-            meta: {},
-          };
+      //Parsing result is collected in res
+      let res = {
+        data: [],
+        errors: [],
+        meta: {},
+      };
 
-          this.readRecords = 0;
+      this.readRecords = 0;
 
-          papa.parse(input, {
-            header: true,
-            worker: false,
-            skipEmptyLines: true,
+      //Parse
+      papa.parse(this.input, {
+        header: true,
+        worker: false,
+        skipEmptyLines: true,
 
-            step: function (results, parser) {
-              if (j % 10000 == 0) {
-                this.readRecords = j;
-              }
-              if (j == 0) res.meta = results.meta;
-              res.data.push(results.data);
-              if (results.errors.length > 0) {
-                for (var i = 0; i < results.errors.length; i++) {
-                  res.errors.push(results.errors[i]);
-                  //console.log(results.errors[i]);
-                }
-              }
-              //res.errors = results.errors;
-              j++;
-            }.bind(this),
+        //Define step
+        step: function (results, parser) {
+          //Update progress
+          if (j % this.progressUpdateEach == 0) {
+            this.readRecords = j;
+          }
+          //set meta info (only on first step)
+          if (j == 0) res.meta = results.meta;
 
-            complete: function (results, file) {
-              //Success
-              if (
-                res.errors.length == 0 &&
-                res.hasOwnProperty("data") &&
-                res.data.length > 0 &&
-                res.hasOwnProperty("meta") &&
-                res.meta.hasOwnProperty("fields")
-              ) {
-                this.errors = null;
-                this.validData = true;
-                this.parsedData = res;
-                this.allFields = res.meta.fields;
-                this.sortedColumns = this.allFields;
-              }
+          //push data to res
+          res.data.push(results.data);
 
-              //Error
-              else {
-                this.errors = res.errors;
-                this.validData = false;
-                this.parsedData = null;
-                this.allFields = [];
-                this.sortedColumns = this.allFields;
-              }
+          //push errors to res
+          if (results.errors.length > 0) {
+            for (var i = 0; i < results.errors.length; i++) {
+              res.errors.push(results.errors[i]);
+            }
+          }
+          j++;
+        }.bind(this),
 
-              //Finally
-              if (this.parsedData === null) {
-                this.errors = [
-                  {
-                    type: "Data is not csv",
-                    message:
-                      "The received data could not be parsed as CSV by papaparse (https://www.papaparse.com/docs).",
-                  },
-                ];
-              }
-              resolve();
-            }.bind(this),
-          });
-        }.bind(this)
-      );
+        //Parsing completed
+        complete: function (results, file) {
+          //Success
+          if (
+            res.errors.length == 0 &&
+            res.hasOwnProperty("data") &&
+            res.data.length > 0 &&
+            res.hasOwnProperty("meta") &&
+            res.meta.hasOwnProperty("fields")
+          ) {
+            //Set result data
+            this.errors = null;
+            this.parsedData = res.data;
+
+            //prepare columns
+            this.columns = [];
+            res.meta.fields.forEach((field, index) => {
+              this.columns.push({
+                field: field, //used to map with parsed data keys
+                name: field, //can be changed
+                id: index,
+                tags: [],
+                order: index + 1,
+              });
+            });
+          }
+
+          //Error
+          else {
+            this.errors =
+              res.errors.length > 0
+                ? res.errors
+                : [
+                    {
+                      type: "Data could not be parsed",
+                      message:
+                        "The received data could not be parsed as CSV by papaparse (https://www.papaparse.com/docs).",
+                    },
+                  ];
+            //limit to 5 error entries
+            let errorsLength = this.errors.length;
+            if (errorsLength > 5) {
+              this.errors = this.errors.slice(0, 4);
+              this.errors.push({
+                type: "Further errors removed...",
+                message: "There are " + (errorsLength - 4) + " more errors.",
+              });
+            }
+            this.parsedData = null;
+            this.columns = null;
+          }
+
+          //Emit
+          this.$emit(
+            "parsing-finished",
+            this.errors,
+            this.parsedData,
+            this.columns
+          );
+
+          //Finally
+          this.loading = false;
+        }.bind(this),
+      });
     },
   },
 };

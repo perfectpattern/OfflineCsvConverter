@@ -160,7 +160,6 @@ export default {
 
   methods: {
     emit(key, value) {
-      console.log(key, value);
       let newTimestampSettings = this.timestampSettings;
       newTimestampSettings[key] = value;
       this.$emit("update:timestampSettings", newTimestampSettings);
