@@ -10,6 +10,7 @@
 import papa from "papaparse";
 import DialogModal from "/src/components/jetstream/DialogModal.vue";
 import SvgPending from "/src/svg/Pending.vue";
+import { helpers } from "/src/modules/helpers";
 
 export default {
   components: { DialogModal, SvgPending },
@@ -97,11 +98,19 @@ export default {
             //prepare columns
             this.columns = [];
             res.meta.fields.forEach((field, index) => {
+              //Checl for timestamps information
+              let sani = helpers.sanitizeString(field);
+              let isTimestamp =
+                sani.includes("date") ||
+                sani.includes("time") ||
+                sani.includes("datum") ||
+                sani.includes("zeit");
+
               this.columns.push({
                 field: field, //used to map with parsed data keys
                 name: field, //can be changed
                 id: index,
-                tags: [],
+                tags: isTimestamp ? ["timestamp"] : [],
                 order: index + 1,
               });
             });

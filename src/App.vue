@@ -103,7 +103,7 @@
             :parsedData="parsedData"
             :validData="validData"
             :columns="columns"
-            :timestampSettings="timestampSettings"
+            :rules="rules"
             @timestampParsingError="setTimestampParsingError"
           />-->
         </div>

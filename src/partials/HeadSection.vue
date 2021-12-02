@@ -15,11 +15,11 @@
         gap-x-2
       "
     >
-      Conversion done 100% on your device - no data upload!
+      100% on your device - no data upload!
     </div>
 
     <div class="mt-2 mb-6 text-center text-sm">
-      Simply format a CSV to use it for AutoML like e.g.
+      Parse & format a CSV to use it for AutoML like e.g.
       <a href="https://perfectpattern.de" target="_blank">aivis</a>. The
       conversion happens purely client-based. No data is uploaded, saved or
       sent.

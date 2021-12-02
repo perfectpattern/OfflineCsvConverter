@@ -6,7 +6,7 @@
     <!--Parse as-->
     <div class="w-full">
       <div class="mb-2 flex justify-between">
-        <div class="text-sm font-semibold">Parsing</div>
+        <div class="text-sm font-semibold">Parse as</div>
         <my-switch
           :options="inputModes"
           v-model="rules.timestamp.app.parsingMode"
@@ -81,13 +81,19 @@
           <div class="w-full">
             <div class="flex justify-between items-center">
               <div class="mb-1">Input</div>
-              <div class="flex justify-end font-semibold text-sm">
+              <div class="flex justify-end font-semibold text-sm text-blue-300">
                 {{ raw }}
               </div>
             </div>
             <div class="flex justify-between items-center">
               <div class="mb-1">Output</div>
-              <div class="flex justify-end font-semibold text-sm">
+              <div
+                class="flex justify-end font-semibold text-sm"
+                :class="{
+                  'text-red-500 font-bold': converted === 'ERROR',
+                  'text-blue-300': converted !== 'ERROR',
+                }"
+              >
                 {{ converted }}
               </div>
             </div>
@@ -107,6 +113,7 @@
               />
               <input
                 v-model="previewIndex"
+                pattern="[0-9]{1,5}"
                 class="
                   p-0
                   m-0
@@ -204,9 +211,9 @@ export default {
           name: null,
           app: {
             parsingMode: this.inputModes[0],
-            parsingString: "DD.MM.YYYY HH:mm:ss",
+            parsingString: "DD.MM.YYYY HH:mm:ss.SSS",
             outputMode: this.outputModes[0],
-            outputString: "YYYY-MM-DD hh:mm:ss",
+            outputString: "DD.MM.YYYY HH:mm:ss.SSS",
           },
         };
       else this.rules.timestamp.columns = timestampColumns;
