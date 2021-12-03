@@ -4,13 +4,45 @@ function sanitizeString(str) {
 }
 
 function getColumnsByTag(columns, tag) {
-    let columnsWithTag = [];
-    for (var i = 0; i < columns.length; i++) {
-        let column = columns[i];
-        if (column.tags.includes(tag)) columnsWithTag.push(column);
+    let columnsWithTag = {};
+    for (let id in columns) {
+        let column = columns[id];
+        if (column.tags.includes(tag)) columnsWithTag[id] = column;
     }
     return columnsWithTag;
 }
+
+function collectColumnFields(columns) {
+    let fields = [];
+
+    //Get all orders and sort them
+    let orders = [];
+    for (let id in columns) orders.push(columns[id].order);
+    orders.sort();
+
+    //Collect all filed from columns by order
+    orders.forEach(order => {
+        for (let id in columns) {
+            let column = columns[id];
+            if (column.order === order) {
+                column.fields.forEach(field => {
+                    if (!fields.includes(field)) fields.push(field);
+                });
+            }
+        }
+    });
+
+    return fields;
+}
+
+function getColumAtOrder(columns, order) {
+    for (let id in columns) {
+        let column = columns[id];
+        if (column.order === order) return column;
+    }
+    return null;
+}
+
 
 function extractEntries(parsedData, page = null, length = null) {
 
@@ -289,6 +321,8 @@ function bytesToString(bytes) {
 export const helpers = {
     sanitizeString: sanitizeString,
     getColumnsByTag: getColumnsByTag,
+    getColumAtOrder: getColumAtOrder,
+    collectColumnFields: collectColumnFields,
     extractEntries: extractEntries,
     getTimeMultiplier: getTimeMultiplier,
     timespanToMs: timespanToMs,

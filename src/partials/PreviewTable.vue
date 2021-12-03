@@ -1,5 +1,8 @@
 <template>
-  <div v-if="validData" class="">
+  <div v-if="show">
+    <div class="flex justify-between items-center mt-10 mb-4 border-b pb-2">
+      <div class="text-xl">CSV Data</div>
+    </div>
     <!--Pagination-->
     <pagination
       class="flex-shrink-0 rounded"
@@ -33,7 +36,7 @@
 
             <!--Timestamp-->
             <th
-              v-if="hasTimestamp"
+              v-if="columns.timestamp.fields.length > 0"
               :key="'ts'"
               class="
                 px-4
@@ -71,7 +74,7 @@
         <tbody class="divide-y divide-gray-200 relative">
           <!----Table rows---->
           <tr
-            v-for="(record, rowIndex) in filteredData.data"
+            v-for="(row, rowIndex) in filteredData.data"
             :key="'row' + rowIndex"
             class="hover:bg-gray-50 hover:bg-opacity-50 active:bg-gray-100"
           >
@@ -91,7 +94,7 @@
 
             <!--Timestamp-->
             <td
-              v-if="hasTimestamp"
+              v-if="columns.timestamp.fields.length > 0"
               :key="'ts_val' + rowIndex"
               class="
                 px-4
@@ -103,13 +106,13 @@
               "
             >
               <div>
-                {{ format(field, record[field]) }}
+                {{ format(row, columns.timestamp) }}
               </div>
             </td>
 
             <!--Values-->
             <td
-              v-for="(field, colIndex) in fields"
+              v-for="(column, colIndex) in columnsToShow"
               :key="rowIndex + '_' + colIndex"
               class="
                 px-4
@@ -121,7 +124,7 @@
               "
             >
               <div>
-                {{ format(field, record[field]) }}
+                {{ format(row, column) }}
               </div>
             </td>
           </tr>
@@ -148,13 +151,8 @@ export default {
     parsedData: {
       default: null,
     },
-    validData: {
-      default: false,
-    },
+
     columns: {
-      default: null,
-    },
-    rules: {
       default: null,
     },
   },
@@ -194,14 +192,18 @@ export default {
   },
 
   computed: {
-    hasTimestamp() {
-      if (this.columns === null) return false;
-      return helpers.getColumnsByTag("timestamp").length > 0;
+    show() {
+      return this.columns !== null;
     },
 
     columnsToShow() {
       if (this.columns === null) return [];
-      return helpers.getColumnsByTag("value");
+      let out = [];
+      for (var order = 0; order < Object.keys(this.columns).length; order++) {
+        let column = helpers.getColumAtOrder(this.columns, order);
+        if (column !== null && column.tags.includes("value")) out.push(column);
+      }
+      return out;
     },
   },
 
@@ -234,43 +236,24 @@ export default {
     },
 
     fetchEntries() {
-      if (!this.validData) return;
+      if (!this.show) return;
       this.timestampParsingError = false;
       this.filteredData = helpers.extractEntries(
-        this.parsedData.data,
+        this.parsedData,
         this.currentPage,
         this.currentPageLength
       );
     },
 
-    /*updateFieldsDisplayNames() {
-      this.fieldsDisplayNames = [];
-      for (var i = 0; i < this.fields.length; i++) {
-        let field = this.fields[i];
-        this.fieldsDisplayNames.push(
-          this.renamings.hasOwnProperty(field) ? this.renamings[field] : field
-        );
-      }
-    },*/
-
-    format(field, value) {
-      //prepare options
-      let options = {
-        isTimestamp: field === this.timestampColumns,
-        timestampSettings: this.timestampSettings,
-      };
-
+    format(row, column) {
       //format value
-      let formatted = formatter.format(value, options);
+      let formatted = formatter.format(row, column);
 
       //Error
-      if (formatted.error) {
-        if (options.isTimestamp) this.timestampParsingError = true;
-        return value;
-      }
+      if (formatted.error) return "ERROR";
 
       //Success
-      return formatted.value;
+      return formatted.formatted;
     },
   },
 };

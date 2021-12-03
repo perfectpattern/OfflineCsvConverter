@@ -1,16 +1,22 @@
 <template>
-  <draggable-lists :lists="lists" @update:lists="emit" />
+  <div v-show="show">
+    <div class="flex justify-between items-center mb-4 border-b pb-2">
+      <div class="text-xl mt-10">Sort Columns</div>
+    </div>
+    <draggable-lists :lists="lists" @update:lists="emit" />
+  </div>
 </template>
 
 <script>
 import DraggableLists from "/src/components/DraggableLists.vue";
+import { helpers } from "/src/modules/helpers";
 
 export default {
   components: {
     DraggableLists,
   },
 
-  props: ["columns"],
+  props: ["columns", "validData"],
 
   emits: ["update:columns"],
 
@@ -23,56 +29,79 @@ export default {
   watch: {
     columns() {
       //Check columns
-      if (!Array.isArray(this.columns) || this.columns.length == 0)
+      if (
+        !this.columns instanceof Object ||
+        Object.keys(this.columns).length == 0
+      )
         this.lists = null;
       else this.initializeLists();
+    },
+  },
+
+  computed: {
+    show() {
+      return this.columns !== null;
     },
   },
 
   methods: {
     initializeLists() {
       //Prepare lists
-      let listTimestamps = [];
-      let listValues = [];
-      let listRemovals = [];
+      let tempLists = {
+        timestamps: [],
+        values: [],
+        removals: [],
+      };
 
       //convert to lists to be used in draggable
-      this.columns.forEach((column, index) => {
-        if (column.tags.includes("timestamp")) listTimestamps.push(column);
-        else if (column.tags.includes("removal")) listRemovals.push(column);
-        else listValues.push(column);
-      });
+      for (var order = 0; order < Object.keys(this.columns).length; order++) {
+        let column = helpers.getColumAtOrder(this.columns, order);
+        if (column !== null) {
+          if (column.tags.includes("timestamp"))
+            tempLists.timestamps.push(column);
+          else if (column.tags.includes("removal"))
+            tempLists.removals.push(column);
+          else tempLists.values.push(column);
+        }
+      }
 
       this.lists = [
         {
           id: "_timestamps",
           name: "Timestamps",
-          list: listTimestamps,
+          list: tempLists.timestamps,
         },
         {
           id: "_values",
           name: "Values",
-          list: listValues,
+          list: tempLists.values,
         },
         {
           id: "_removals",
           name: "Removals",
-          list: listRemovals,
+          list: tempLists.removals,
         },
       ];
     },
 
     emit(lists) {
-      //console.log("lists", lists);
       let tags = ["timestamp", "value", "removal"];
-      let updatedColumns = [];
+      let updatedColumns = {};
+      let overallOrderIndex = 0;
       lists.forEach((list, index) => {
         let tag = tags[index];
         list.list.forEach((column) => {
           column.tags = this.updateTags(column.tags, tag, tags);
-          updatedColumns.push(column);
+          column.order = overallOrderIndex;
+          overallOrderIndex++;
+          updatedColumns[column.id] = column;
         });
       });
+
+      //add timestamp column again (since was ignored)
+      updatedColumns["timestamp"] = this.columns.timestamp;
+
+      //emit
       this.$emit("update:columns", updatedColumns);
     },
 

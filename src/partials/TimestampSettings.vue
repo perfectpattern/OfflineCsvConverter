@@ -1,141 +1,156 @@
 <template>
-  <div
-    class="flex justify-between gap-x-4"
-    v-if="rules.hasOwnProperty('timestamp')"
-  >
-    <!--Parse as-->
-    <div class="w-full">
-      <div class="mb-2 flex justify-between">
-        <div class="text-sm font-semibold">Parse as</div>
-        <my-switch
-          :options="inputModes"
-          v-model="rules.timestamp.app.parsingMode"
-          @update:modelValue="$emit('update:rules', rules)"
-        />
+  <div v-if="show">
+    <div class="flex justify-between items-center mb-4 border-b pb-2 mt-10">
+      <div class="text-xl">Timestamp Settings</div>
+      <div>
+        (see
+        <a
+          class="text-blue-400 hover:text-blue-800"
+          href="https://momentjs.com/docs/#/parsing/string-format/"
+          target="_blank"
+          >moment.js</a
+        >
+        )
       </div>
-      <dashed-box
-        class="gap-x-4 items-center h-32"
-        :class="{
-          'border-red-500': timestampParsingError,
-          'border-gray-500': !timestampParsingError,
-        }"
-      >
-        <div class="w-full">
-          <div class="mb-1">Input format</div>
-          <jet-input
-            v-show="rules.timestamp.app.parsingMode.id === 'auto'"
-            class="rounded-md py-1 w-full"
-            type="text"
-            :disabled="true"
-            placeholder="auto mode"
-          />
-          <jet-input
-            v-show="rules.timestamp.app.parsingMode.id === 'custom'"
-            class="rounded-md py-1 w-full"
-            type="text"
-            v-model="rules.timestamp.app.parsingString"
-            @update:modelValue="$emit('update:rules', rules)"
-          />
-        </div>
-      </dashed-box>
     </div>
 
-    <!--Format as -->
-    <div class="w-full">
-      <div class="mb-2 flex justify-between">
-        <div class="text-sm font-semibold">Format as</div>
-        <my-switch
-          :options="outputModes"
-          v-model="rules.timestamp.app.outputMode"
-          @update:modelValue="$emit('update:rules', rules)"
-        />
-      </div>
-      <dashed-box class="gap-x-4 items-center border-gray-500 h-32">
-        <div class="w-full">
-          <div class="mb-1">Output format</div>
-          <jet-input
-            v-show="rules.timestamp.app.outputMode.id === 'auto'"
-            class="rounded-md py-1 w-full"
-            type="text"
-            :disabled="true"
-            placeholder="Unix Epoch [ms]"
-          />
-          <jet-input
-            v-show="rules.timestamp.app.outputMode.id === 'custom'"
-            class="rounded-md py-1 w-full"
-            type="text"
-            v-model="rules.timestamp.app.outputString"
-            @update:modelValue="$emit('update:rules', rules)"
+    <div class="flex justify-between gap-x-4">
+      <!--Parse as-->
+      <div class="w-full">
+        <div class="mb-2 flex justify-between">
+          <div class="text-sm font-semibold">Parse as</div>
+          <my-switch
+            :options="inputModes"
+            v-model="columns.timestamp.params.parsingMode"
           />
         </div>
-      </dashed-box>
-    </div>
-
-    <!--Preview box-->
-    <div class="w-full">
-      <div class="mb-2 flex justify-between">
-        <div class="text-sm font-semibold">Preview</div>
-      </div>
-      <dashed-box class="border-gray-500 block h-32">
-        <div class="w-full">
+        <dashed-box
+          class="gap-x-4 items-center h-32"
+          :class="{
+            'border-red-500': timestampParsingError,
+            'border-gray-500': !timestampParsingError,
+          }"
+        >
           <div class="w-full">
-            <div class="flex justify-between items-center">
-              <div class="mb-1">Input</div>
-              <div class="flex justify-end font-semibold text-sm text-blue-300">
-                {{ raw }}
-              </div>
-            </div>
-            <div class="flex justify-between items-center">
-              <div class="mb-1">Output</div>
-              <div
-                class="flex justify-end font-semibold text-sm"
-                :class="{
-                  'text-red-500 font-bold': converted === 'ERROR',
-                  'text-blue-300': converted !== 'ERROR',
-                }"
-              >
-                {{ converted }}
-              </div>
-            </div>
+            <div class="mb-1">Input format</div>
+            <jet-input
+              v-show="columns.timestamp.params.parsingMode.id === 'auto'"
+              class="rounded-md py-1 w-full"
+              type="text"
+              :disabled="true"
+              placeholder="auto mode"
+            />
+            <jet-input
+              v-show="columns.timestamp.params.parsingMode.id === 'custom'"
+              class="rounded-md py-1 w-full"
+              type="text"
+              v-model="columns.timestamp.params.parsingString"
+            />
           </div>
+        </dashed-box>
+      </div>
 
-          <!--Preview navigator-->
-          <div class="flex justify-between items-center mt-1 border-t pt-1">
-            <div class="mb-1">Row index</div>
-            <div class="flex justify-center items-center gap-x-2 text-gray-500">
-              <svg-chevron-left-double
-                class="h-4 cursor-pointer hover:text-gray-800"
-                @click="previewIndex = 0"
-              />
-              <svg-chevron-left
-                class="h-4 cursor-pointer hover:text-gray-800"
-                @click="if (previewIndex > 0) previewIndex--;"
-              />
-              <input
-                v-model="previewIndex"
-                pattern="[0-9]{1,5}"
-                class="
-                  p-0
-                  m-0
-                  w-20
-                  border-none
-                  font-semibold
-                  text-center
-                  bg-opacity-0
-                "
-              />
-              <svg-chevron-right
-                class="h-4 cursor-pointer hover:text-gray-800"
-                @click="if (previewIndex < parsedData.length) previewIndex++;"
-              />
-              <svg-chevron-right-double
-                class="h-4 cursor-pointer hover:text-gray-800"
-                @click="previewIndex = parsedData.length - 1"
-              />
+      <!--Format as -->
+      <div class="w-full">
+        <div class="mb-2 flex justify-between">
+          <div class="text-sm font-semibold">Format as</div>
+          <my-switch
+            :options="outputModes"
+            v-model="columns.timestamp.params.outputMode"
+          />
+        </div>
+        <dashed-box class="gap-x-4 items-center border-gray-500 h-32">
+          <div class="w-full">
+            <div class="mb-1">Output format</div>
+            <jet-input
+              v-show="columns.timestamp.params.outputMode.id === 'auto'"
+              class="rounded-md py-1 w-full"
+              type="text"
+              :disabled="true"
+              placeholder="Unix Epoch [ms]"
+            />
+            <jet-input
+              v-show="columns.timestamp.params.outputMode.id === 'custom'"
+              class="rounded-md py-1 w-full"
+              type="text"
+              v-model="columns.timestamp.params.outputString"
+            />
+          </div>
+        </dashed-box>
+      </div>
+
+      <!--Preview box-->
+      <div class="w-full">
+        <div class="mb-2 flex justify-between">
+          <div class="text-sm font-semibold">Preview</div>
+        </div>
+        <dashed-box class="border-gray-500 block h-32">
+          <div class="w-full">
+            <div class="w-full">
+              <div class="flex justify-between items-center">
+                <div class="mb-1">Input</div>
+                <div
+                  class="flex justify-end font-semibold text-sm text-blue-300"
+                >
+                  {{ formatted.raw }}
+                </div>
+              </div>
+              <div class="flex justify-between items-center">
+                <div class="mb-1">Output</div>
+                <div
+                  class="flex justify-end font-semibold text-sm"
+                  :class="{
+                    'text-red-500 font-bold': formatted.error,
+                    'text-blue-300': !formatted.error,
+                  }"
+                >
+                  {{
+                    formatted.error ? formatted.errorMsg : formatted.formatted
+                  }}
+                </div>
+              </div>
+            </div>
+
+            <!--Preview navigator-->
+            <div class="flex justify-between items-center mt-1 border-t pt-1">
+              <div class="mb-1">Row index</div>
+              <div
+                class="flex justify-center items-center gap-x-2 text-gray-500"
+              >
+                <svg-chevron-left-double
+                  class="h-4 cursor-pointer hover:text-gray-800"
+                  @click="previewIndex = 0"
+                />
+                <svg-chevron-left
+                  class="h-4 cursor-pointer hover:text-gray-800"
+                  @click="if (previewIndex > 0) previewIndex--;"
+                />
+                <input
+                  v-model="previewIndex"
+                  pattern="[0-9]{1,5}"
+                  class="
+                    p-0
+                    m-0
+                    w-20
+                    border-none
+                    font-semibold
+                    text-center
+                    bg-opacity-0
+                  "
+                />
+                <svg-chevron-right
+                  class="h-4 cursor-pointer hover:text-gray-800"
+                  @click="if (previewIndex < parsedData.length) previewIndex++;"
+                />
+                <svg-chevron-right-double
+                  class="h-4 cursor-pointer hover:text-gray-800"
+                  @click="previewIndex = parsedData.length - 1"
+                />
+              </div>
             </div>
           </div>
-        </div>
-      </dashed-box>
+        </dashed-box>
+      </div>
     </div>
   </div>
 </template>
@@ -165,10 +180,6 @@ export default {
   },
 
   props: {
-    rules: {
-      type: Object,
-    },
-
     columns: {
       default: null,
     },
@@ -182,8 +193,6 @@ export default {
       default: false,
     },
   },
-
-  emits: ["update:rules"],
 
   data() {
     return {
@@ -201,55 +210,28 @@ export default {
 
   watch: {
     columns() {
+      if (this.columns === null) return;
+      //Update timestamp column, if timestamp tags changed
       let timestampColumns = helpers.getColumnsByTag(this.columns, "timestamp");
-      //initialize timestamp rule
-      XXXXXXXXXXXXXXXXXXXXX
-      //TODO: Anstatt rules, für zu columns hinzu
-      if (!this.rules.hasOwnProperty("timestamp"))
-        this.rules["timestamp"] = {
-          columns: timestampColumns,
-          code: null,
-          create: false,
-          name: null,
-          app: {
-            parsingMode: this.inputModes[0],
-            parsingString: "DD.MM.YYYY HH:mm:ss.SSS",
-            outputMode: this.outputModes[0],
-            outputString: "DD.MM.YYYY HH:mm:ss.SSS",
-          },
-        };
-      else this.rules.timestamp.columns = timestampColumns;
+      let timestampFields = helpers.collectColumnFields(timestampColumns);
+      let tagsChanged =
+        this.columns.timestamp.fields.join(",") !== timestampFields.join(",");
 
-      //emit
-      this.$emit("update:rules", this.rules);
+      if (tagsChanged) this.columns.timestamp.fields = timestampFields;
     },
   },
 
   computed: {
-    raw() {
-      if (this.parsedData === null || !this.rules.hasOwnProperty("timestamp"))
-        return null;
+    show() {
+      return this.columns !== null && this.columns.timestamp.fields.length > 0;
+    },
+
+    formatted() {
+      if (!this.show || this.parsedData === null) return null;
+
       let row = this.parsedData[this.previewIndex];
-      let values = [];
-      this.rules.timestamp.columns.forEach((column) => {
-        values.push(row[column.field]);
-      });
-      return values.join(" ");
+      return formatter.format(row, this.columns.timestamp);
     },
-
-    converted() {
-      if (this.raw === null) return null;
-      let response = formatter.format(this.raw, {
-        isTimestamp: true,
-        timestampSettings: this.rules.timestamp.app,
-      });
-      if (response.error) return "ERROR";
-      return response.value;
-    },
-  },
-
-  methods: {
-    applyTimestampRule(rules, value) {},
   },
 };
 </script>

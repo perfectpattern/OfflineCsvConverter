@@ -46,7 +46,7 @@ export default {
       let j = 0;
 
       //Parsing result is collected in res
-      let res = {
+      let parsingResult = {
         data: [],
         errors: [],
         meta: {},
@@ -67,15 +67,15 @@ export default {
             this.readRecords = j;
           }
           //set meta info (only on first step)
-          if (j == 0) res.meta = results.meta;
+          if (j == 0) parsingResult.meta = results.meta;
 
           //push data to res
-          res.data.push(results.data);
+          parsingResult.data.push(results.data);
 
           //push errors to res
           if (results.errors.length > 0) {
             for (var i = 0; i < results.errors.length; i++) {
-              res.errors.push(results.errors[i]);
+              parsingResult.errors.push(results.errors[i]);
             }
           }
           j++;
@@ -83,71 +83,8 @@ export default {
 
         //Parsing completed
         complete: function (results, file) {
-          //Success
-          if (
-            res.errors.length == 0 &&
-            res.hasOwnProperty("data") &&
-            res.data.length > 0 &&
-            res.hasOwnProperty("meta") &&
-            res.meta.hasOwnProperty("fields")
-          ) {
-            //Set result data
-            this.errors = null;
-            this.parsedData = res.data;
-
-            //prepare columns
-            this.columns = [];
-            res.meta.fields.forEach((field, index) => {
-              //Checl for timestamps information
-              let sani = helpers.sanitizeString(field);
-              let isTimestamp =
-                sani.includes("date") ||
-                sani.includes("time") ||
-                sani.includes("datum") ||
-                sani.includes("zeit");
-
-              this.columns.push({
-                field: field, //used to map with parsed data keys
-                name: field, //can be changed
-                id: index,
-                tags: isTimestamp ? ["timestamp"] : [],
-                order: index + 1,
-              });
-            });
-          }
-
-          //Error
-          else {
-            this.errors =
-              res.errors.length > 0
-                ? res.errors
-                : [
-                    {
-                      type: "Data could not be parsed",
-                      message:
-                        "The received data could not be parsed as CSV by papaparse (https://www.papaparse.com/docs).",
-                    },
-                  ];
-            //limit to 5 error entries
-            let errorsLength = this.errors.length;
-            if (errorsLength > 5) {
-              this.errors = this.errors.slice(0, 4);
-              this.errors.push({
-                type: "Further errors removed...",
-                message: "There are " + (errorsLength - 4) + " more errors.",
-              });
-            }
-            this.parsedData = null;
-            this.columns = null;
-          }
-
           //Emit
-          this.$emit(
-            "parsing-finished",
-            this.errors,
-            this.parsedData,
-            this.columns
-          );
+          this.$emit("parsing-finished", parsingResult);
 
           //Finally
           this.loading = false;

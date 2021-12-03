@@ -53,65 +53,26 @@
       <!--Errors-->
       <errors :errors="errors" />
 
-      <!--If valid data-->
-      <div v-show="validData">
-        <div>
-          <div class="flex justify-between items-center mb-4 border-b pb-2">
-            <div class="text-xl mt-10">Sort Columns</div>
-          </div>
+      <!--Columns Sorting-->
+      <columns-sorting v-model:columns="columns" />
 
-          <!--Columns Sorting-->
-          <columns-sorting v-model:columns="columns" />
-        </div>
+      <!--Timedate parsing-->
+      <timestamp-settings
+        v-model:columns="columns"
+        :parsedData="parsedData"
+        :timestampParsingError="timestampParsingError"
+      />
 
-        <!--Timedate parsing-->
-        <div v-show="timestampColumns.length > 0">
-          <div
-            class="flex justify-between items-center mb-4 border-b pb-2 mt-10"
-          >
-            <div class="text-xl">Timestamp Settings</div>
-            <div>
-              (see
-              <a
-                class="text-blue-400 hover:text-blue-800"
-                href="https://momentjs.com/docs/#/parsing/string-format/"
-                target="_blank"
-                >moment.js</a
-              >
-              )
-            </div>
-          </div>
-          <timestamp-settings
-            v-model:rules="rules"
-            :columns="columns"
-            :parsedData="parsedData"
-            :timestampParsingError="timestampParsingError"
-          />
-        </div>
-
-        <!--Output Data Preview-->
-        <div>
-          <div
-            class="flex justify-between items-center mt-10 mb-4 border-b pb-2"
-          >
-            <div class="text-xl">CSV Data</div>
-
-            <my-switch v-model="outputMode" :data="outputModes" />
-          </div>
-          <!--Preview table-->
-          <preview-table
-            :parsedData="parsedData"
-            :validData="validData"
-            :columns="columns"
-            :rules="rules"
-            @timestampParsingError="setTimestampParsingError"
-          />
-        </div>
-      </div>
-
-      <!--CSV Parser-->
-      <parser-csv :input="rawCsv" @parsing-finished="parsingFinished" />
+      <!--Output Data Preview-->
+      <preview-table
+        :parsedData="parsedData"
+        :columns="columns"
+        @timestampParsingError="setTimestampParsingError"
+      />
     </div>
+
+    <!--CSV Parser-->
+    <parser-csv :input="rawCsv" @parsing-finished="parsingFinished" />
   </div>
 </template>
 
@@ -131,6 +92,7 @@ import TimestampSettings from "./partials/TimestampSettings.vue";
 import HeadSection from "./partials/HeadSection.vue";
 import ParserCsv from "./partials/ParserCSV.vue";
 import { helpers } from "/src/modules/helpers";
+import { dataPreparator } from "/src/modules/dataPreparator";
 
 export default {
   components: {
@@ -157,7 +119,7 @@ export default {
       errors: null,
       validData: false,
       fromClipboard: false,
-      columns: [],
+      columns: null,
       rules: {},
       timestampSettings: {
         parsingMode: "auto",
@@ -173,11 +135,11 @@ export default {
     };
   },
 
-  computed: {
+  /*computed: {
     timestampColumns() {
       return helpers.getColumnsByTag(this.columns, "timestamp");
     },
-  },
+  },*/
 
   methods: {
     reset() {
@@ -186,23 +148,19 @@ export default {
       this.parsedData = null;
       this.filename = null;
       this.fromClipboard = false;
-      this.columns = [];
-      this.sortedColumns = [];
-      this.renamings = {};
-    },
-
-    receivedRawData(data) {
-      this.rawData = data;
+      this.columns = null;
     },
 
     //Entry point for parsed data
-    parsingFinished(errors, parsedData, columns) {
-      this.errors = errors;
-      this.parsedData = parsedData;
-      this.columns = columns;
-
+    parsingFinished(parsingResult) {
+      //prepare the parse data
+      let response = dataPreparator.prepare(parsingResult);
+      console.log("response", response);
+      this.errors = response.errors;
+      this.parsedData = response.parsedData;
+      this.columns = response.columns;
       this.rawCsv = null;
-      this.validData = errors === null;
+      this.validData = response.errors === null;
     },
 
     readClipboard() {
