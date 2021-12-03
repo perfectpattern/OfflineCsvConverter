@@ -27,15 +27,11 @@
           <my-button @click="reset" class="bg-red-500">Restart</my-button>
 
           <!--Export-->
-          <!--<export
-            :timestampColumns="timestampColumns"
-            :sortedColumns="sortedColumns"
-            :data="parsedData == null ? [] : parsedData.data"
-            :timestampSettings="timestampSettings"
-            :validData="validData"
-            :renamings="renamings"
+          <export
+            :columns="columns"
+            :parsedData="parsedData"
             :filename="filename"
-          />-->
+          />
         </div>
       </div>
 
@@ -134,12 +130,6 @@ export default {
       rawCsv: null,
     };
   },
-
-  /*computed: {
-    timestampColumns() {
-      return helpers.getColumnsByTag(this.columns, "timestamp");
-    },
-  },*/
 
   methods: {
     reset() {

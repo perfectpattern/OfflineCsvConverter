@@ -30,6 +30,7 @@ export default {
     columns() {
       //Check columns
       if (
+        this.columns === null ||
         !this.columns instanceof Object ||
         Object.keys(this.columns).length == 0
       )

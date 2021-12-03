@@ -1,5 +1,5 @@
 <template>
-  <my-button :disabled="!validData" class="bg-gray-700" @click="exportData"
+  <my-button :disabled="disabled" class="bg-gray-700" @click="exportData"
     >CONVERT & DOWNLOAD</my-button
   >
 
@@ -19,6 +19,7 @@
 import MyButton from "/src/components/Button.vue";
 import DialogModal from "/src/components/jetstream/DialogModal.vue";
 import SvgPending from "/src/svg/Pending.vue";
+import { helpers } from "/src/modules/helpers";
 import { formatter } from "/src/modules/formatter";
 
 export default {
@@ -28,15 +29,7 @@ export default {
     SvgPending,
   },
 
-  props: [
-    "timestampColumns",
-    "sortedColumns",
-    "renamings",
-    "data",
-    "timestampSettings",
-    "validData",
-    "filename",
-  ],
+  props: ["columns", "parsedData", "filename"],
 
   data() {
     return {
@@ -44,7 +37,26 @@ export default {
       percent: 0,
       running: false,
       preparingDownload: false,
+      separator: ",",
+      lineEnd: "\n",
     };
+  },
+
+  computed: {
+    disabled() {
+      return this.columns === null;
+    },
+
+    columnsToShow() {
+      //TODO: Merge with same functin in preview
+      if (this.columns === null) return [];
+      let out = [];
+      for (var order = 0; order < Object.keys(this.columns).length; order++) {
+        let column = helpers.getColumAtOrder(this.columns, order);
+        if (column !== null && column.tags.includes("value")) out.push(column);
+      }
+      return out;
+    },
   },
 
   methods: {
@@ -67,82 +79,13 @@ export default {
       return formatted.value;
     },
 
-    convertRecursively(
-      data,
-      sortedColumns,
-      renamings,
-      callback,
-      csvString = null,
-      index = 0
-    ) {
-      //Header
-      if (csvString === null) {
-        let sortedRenamedColumns = [];
-        sortedColumns.forEach((column) => {
-          sortedRenamedColumns.push(
-            renamings.hasOwnProperty(column) ? renamings[column] : column
-          );
-        });
-        csvString = sortedRenamedColumns.join(",") + "\n";
-      }
-
-      //Add record
-      let record = data[index];
-      let row = [];
-      for (var j = 0; j < sortedColumns.length; j++) {
-        let field = sortedColumns[j];
-        row.push(this.format(field, record[field]));
-      }
-      csvString += row.join(",") + "\n";
-
-      index = index + 1;
-
-      //Call again
-      if (index < data.length) {
-        //UI update
-        if (index % 1000 == 0) {
-          this.rows = index;
-          this.percent = ((index / data.length) * 100).toFixed(1);
-
-          //call again with time out
-          setTimeout(
-            function () {
-              this.convertRecursively(
-                data,
-                sortedColumns,
-                renamings,
-                callback,
-                csvString,
-                index
-              );
-            }.bind(this),
-            1
-          );
-        }
-
-        //call again without time out
-        else {
-          this.convertRecursively(
-            data,
-            sortedColumns,
-            renamings,
-            callback,
-            csvString,
-            index
-          );
-        }
-      } else {
-        callback(csvString);
-      }
-    },
-
     exportData() {
       this.rows = 0;
       this.percent = 0;
       this.running = true;
 
       this.convertRecursively(
-        this.data,
+        this.parsedData,
         this.sortedColumns,
         this.renamings,
         function (csvString) {
@@ -157,6 +100,82 @@ export default {
           );
         }.bind(this)
       );
+    },
+
+    createCsvHeader() {
+      let arr = [];
+      if (this.columns.timestamp.fields.length > 0) arr.push("timestamp");
+      for (var k = 0; k < this.columnsToShow.length; k++)
+        arr.push(this.columnsToShow[k].name);
+      return arr.join(this.separator) + this.lineEnd;
+    },
+
+    createCsvRow(parsedDataRow) {
+      let arr = [];
+      if (this.columns.timestamp.fields.length > 0)
+        arr.push(
+          formatter.format(parsedDataRow, this.columns.timestamp).formatted
+        );
+      for (var j = 0; j < this.columnsToShow.length; j++) {
+        let formatted = formatter.format(parsedDataRow, this.columnsToShow[j]);
+        arr.push(formatted.formatted);
+      }
+      return arr.join(this.separator) + this.lineEnd;
+    },
+
+    convertRecursively(
+      parsedData,
+      sortedColumns,
+      renamings,
+      callback,
+      csvString = null,
+      index = 0
+    ) {
+      //Create header
+      if (csvString === null) csvString = this.createCsvHeader();
+
+      //Add record
+      csvString += this.createCsvRow(parsedData[index]);
+
+      index = index + 1;
+
+      //Call again
+      if (index < parsedData.length) {
+        //UI update
+        if (index % 1000 == 0) {
+          this.rows = index;
+          this.percent = ((index / parsedData.length) * 100).toFixed(1);
+
+          //call again with time out
+          setTimeout(
+            function () {
+              this.convertRecursively(
+                parsedData,
+                sortedColumns,
+                renamings,
+                callback,
+                csvString,
+                index
+              );
+            }.bind(this),
+            1
+          );
+        }
+
+        //call again without time out
+        else {
+          this.convertRecursively(
+            parsedData,
+            sortedColumns,
+            renamings,
+            callback,
+            csvString,
+            index
+          );
+        }
+      } else {
+        callback(csvString);
+      }
     },
 
     download(content) {

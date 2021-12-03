@@ -10,7 +10,6 @@
 import papa from "papaparse";
 import DialogModal from "/src/components/jetstream/DialogModal.vue";
 import SvgPending from "/src/svg/Pending.vue";
-import { helpers } from "/src/modules/helpers";
 
 export default {
   components: { DialogModal, SvgPending },

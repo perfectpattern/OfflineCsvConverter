@@ -1,7 +1,7 @@
 <template>
   <div v-if="show">
     <div class="flex justify-between items-center mt-10 mb-4 border-b pb-2">
-      <div class="text-xl">CSV Data</div>
+      <div class="text-xl">Output preview</div>
     </div>
     <!--Pagination-->
     <pagination
@@ -133,9 +133,9 @@
     </div>
   </div>
 
-  <div v-else class="text-gray-400 font-semibold">
+  <!--<div v-else class="text-gray-400 font-semibold">
     Currently there is no data to display. Please load CSV or JSON to proceed.
-  </div>
+  </div>-->
 </template>
 
 <script>
@@ -159,7 +159,7 @@ export default {
 
   data() {
     return {
-      perPage: ["5", "10", "20", "50", "100", "500"],
+      perPage: ["5", "10", "20", "50"],
       currentPageLength: 10,
       currentPage: 1,
       fieldsDisplayNames: [],

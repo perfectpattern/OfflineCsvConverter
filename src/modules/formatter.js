@@ -73,11 +73,12 @@ function format(row, column) {
         errorMsg: null
     }
 
-    //Get raw data
-    output.raw = getValues(row, column.fields).join(" ");
-
     //Timestamps
     if (column.id === 'timestamp') {
+        //Get raw data
+        output.raw = getValues(row, column.fields).join(" ");
+
+        //Parse the date
         let date = parseDateString(output.raw, column.params);
 
         //Successfully parsed
@@ -92,6 +93,9 @@ function format(row, column) {
 
     //Values
     else {
+        //Get raw data
+        output.raw = getValues(row, column.fields);
+
         //No rule
         if (column.rule === null) {
             output.formatted = output.raw[0];
