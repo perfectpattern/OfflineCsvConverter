@@ -86,68 +86,7 @@
         </div>
         <dashed-box class="border-gray-500 block h-32">
           <div class="w-full">
-            <div class="w-full">
-              <div class="flex justify-between items-center">
-                <div class="mb-1">Input</div>
-                <div
-                  class="flex justify-end font-semibold text-sm text-blue-300"
-                >
-                  {{ formatted.raw }}
-                </div>
-              </div>
-              <div class="flex justify-between items-center">
-                <div class="mb-1">Output</div>
-                <div
-                  class="flex justify-end font-semibold text-sm"
-                  :class="{
-                    'text-red-500 font-bold': formatted.error,
-                    'text-blue-300': !formatted.error,
-                  }"
-                >
-                  {{
-                    formatted.error ? formatted.errorMsg : formatted.formatted
-                  }}
-                </div>
-              </div>
-            </div>
-
-            <!--Preview navigator-->
-            <div class="flex justify-between items-center mt-1 border-t pt-1">
-              <div class="mb-1">Row index</div>
-              <div
-                class="flex justify-center items-center gap-x-2 text-gray-500"
-              >
-                <svg-chevron-left-double
-                  class="h-4 cursor-pointer hover:text-gray-800"
-                  @click="previewIndex = 0"
-                />
-                <svg-chevron-left
-                  class="h-4 cursor-pointer hover:text-gray-800"
-                  @click="if (previewIndex > 0) previewIndex--;"
-                />
-                <input
-                  v-model="previewIndex"
-                  pattern="[0-9]{1,5}"
-                  class="
-                    p-0
-                    m-0
-                    w-20
-                    border-none
-                    font-semibold
-                    text-center
-                    bg-opacity-0
-                  "
-                />
-                <svg-chevron-right
-                  class="h-4 cursor-pointer hover:text-gray-800"
-                  @click="if (previewIndex < parsedData.length) previewIndex++;"
-                />
-                <svg-chevron-right-double
-                  class="h-4 cursor-pointer hover:text-gray-800"
-                  @click="previewIndex = parsedData.length - 1"
-                />
-              </div>
-            </div>
+            <preview :parsedData="parsedData" :column="columns.timestamp" />
           </div>
         </dashed-box>
       </div>
@@ -157,26 +96,19 @@
 
 <script>
 import SvgCheck from "/src/svg/Check.vue";
-import SvgChevronLeft from "/src/svg/ChevronLeft.vue";
-import SvgChevronLeftDouble from "/src/svg/ChevronLeftDouble.vue";
-import SvgChevronRight from "/src/svg/ChevronRight.vue";
-import SvgChevronRightDouble from "/src/svg/ChevronRightDouble.vue";
 import JetInput from "/src/components/jetstream/Input.vue";
 import DashedBox from "/src/components/DashedBox.vue";
 import MySwitch from "/src/components/SwitchSmall.vue";
+import Preview from "/src/components/Preview.vue";
 import { helpers } from "/src/modules/helpers";
-import { formatter } from "/src/modules/formatter";
 
 export default {
   components: {
     SvgCheck,
-    SvgChevronLeft,
-    SvgChevronLeftDouble,
-    SvgChevronRight,
-    SvgChevronRightDouble,
     JetInput,
     DashedBox,
     MySwitch,
+    Preview,
   },
 
   props: {
@@ -204,7 +136,6 @@ export default {
         { id: "auto", label: "auto" },
         { id: "custom", label: "custom" },
       ],
-      previewIndex: 0,
     };
   },
 
@@ -224,13 +155,6 @@ export default {
   computed: {
     show() {
       return this.columns !== null && this.columns.timestamp.fields.length > 0;
-    },
-
-    formatted() {
-      if (!this.show || this.parsedData === null) return null;
-
-      let row = this.parsedData[this.previewIndex];
-      return formatter.format(row, this.columns.timestamp);
     },
   },
 };

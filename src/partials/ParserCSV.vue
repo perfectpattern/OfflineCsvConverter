@@ -58,6 +58,9 @@ export default {
         header: true,
         worker: false,
         skipEmptyLines: true,
+        transform: function (value) {
+          return value.replace(/,/g, ".");
+        },
 
         //Define step
         step: function (results, parser) {

@@ -55,15 +55,14 @@ export default {
       };
 
       //convert to lists to be used in draggable
-      for (var order = 0; order < Object.keys(this.columns).length; order++) {
-        let column = helpers.getColumAtOrder(this.columns, order);
-        if (column !== null) {
-          if (column.tags.includes("timestamp"))
-            tempLists.timestamps.push(column);
-          else if (column.tags.includes("removal"))
-            tempLists.removals.push(column);
-          else tempLists.values.push(column);
-        }
+      let columnsArray = helpers.columnsToSortedArray(this.columns);
+      for (var i = 0; i < columnsArray.length; i++) {
+        let column = columnsArray[i];
+        if (column.tags.includes("timestamp"))
+          tempLists.timestamps.push(column);
+        else if (column.tags.includes("removal"))
+          tempLists.removals.push(column);
+        else tempLists.values.push(column);
       }
 
       this.lists = [

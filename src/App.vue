@@ -59,6 +59,14 @@
         :timestampParsingError="timestampParsingError"
       />
 
+      <!--Rule-->
+      <rule
+        v-if="columns !== null"
+        :id="'tset'"
+        v-model:columns="columns"
+        :parsedData="parsedData"
+      />
+
       <!--Output Data Preview-->
       <preview-table
         :parsedData="parsedData"
@@ -73,12 +81,15 @@
 </template>
 
 <script>
+import { dataPreparator } from "/src/modules/dataPreparator";
+
 import DialogModal from "./components/jetstream/DialogModal.vue";
 import MyNav from "./components/Nav.vue";
 import MySwitch from "./components/SwitchSmall.vue";
 import MyTransition from "./components/Transition.vue";
 import MyButton from "./components/Button.vue";
 import PreviewTable from "./partials/PreviewTable.vue";
+import Rule from "./partials/Rule.vue";
 import FileSelector from "./components/FileSelector.vue";
 import SvgPending from "./svg/Pending.vue";
 import Errors from "./partials/Errors.vue";
@@ -87,8 +98,6 @@ import Export from "./partials/Export.vue";
 import TimestampSettings from "./partials/TimestampSettings.vue";
 import HeadSection from "./partials/HeadSection.vue";
 import ParserCsv from "./partials/ParserCSV.vue";
-import { helpers } from "/src/modules/helpers";
-import { dataPreparator } from "/src/modules/dataPreparator";
 
 export default {
   components: {
@@ -98,6 +107,7 @@ export default {
     MyTransition,
     MyButton,
     PreviewTable,
+    Rule,
     SvgPending,
     Errors,
     FileSelector,

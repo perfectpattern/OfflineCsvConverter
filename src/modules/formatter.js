@@ -76,10 +76,10 @@ function format(row, column) {
     //Timestamps
     if (column.id === 'timestamp') {
         //Get raw data
-        output.raw = getValues(row, column.fields).join(" ");
+        output.raw = [getValues(row, column.fields).join(" ")];
 
         //Parse the date
-        let date = parseDateString(output.raw, column.params);
+        let date = parseDateString(output.raw[0], column.params);
 
         //Successfully parsed
         if (date !== null) output.formatted = date;
@@ -113,13 +113,14 @@ function format(row, column) {
             }
             catch (e) {
                 output.error = true;
-                output.errorMsg = e.getMessage();
+                console.log(e);
+                output.errorMsg = e.message;
             }
         }
 
         //Default value formatting
         //replace all decimal commas by points
-        output.formatted = typeof output.formatted === 'string' ? output.formatted.replace(",", ".") : output.formatted;
+        //output.formatted = typeof output.formatted === 'string' ? output.formatted.replace(",", ".") : output.formatted;
     }
 
     return output;

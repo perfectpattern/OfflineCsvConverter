@@ -43,6 +43,17 @@ function getColumAtOrder(columns, order) {
     return null;
 }
 
+function columnsToSortedArray(columns, tag = null) {
+    let out = [];
+    for (var order = 0; order < Object.keys(columns).length; order++) {
+        let column = getColumAtOrder(columns, order);
+        if (column !== null) {
+            if (tag === null || column.tags.includes(tag))
+                out.push(column);
+        }
+    }
+    return out;
+}
 
 function extractEntries(parsedData, page = null, length = null) {
 
@@ -323,6 +334,7 @@ export const helpers = {
     getColumnsByTag: getColumnsByTag,
     getColumAtOrder: getColumAtOrder,
     collectColumnFields: collectColumnFields,
+    columnsToSortedArray: columnsToSortedArray,
     extractEntries: extractEntries,
     getTimeMultiplier: getTimeMultiplier,
     timespanToMs: timespanToMs,

@@ -5,12 +5,18 @@
       w-full
       border-2 border-dashed
       rounded-md
-      pt-4
-      pb-6
-      px-4
       overflow-y-auto overflow-x-hidden
     "
+    :class="{
+      'p-4': !noPadding,
+    }"
   >
     <slot></slot>
   </div>
 </template>
+
+<script>
+export default {
+  props: { noPadding: false },
+};
+</script>

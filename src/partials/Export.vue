@@ -48,14 +48,8 @@ export default {
     },
 
     columnsToShow() {
-      //TODO: Merge with same functin in preview
       if (this.columns === null) return [];
-      let out = [];
-      for (var order = 0; order < Object.keys(this.columns).length; order++) {
-        let column = helpers.getColumAtOrder(this.columns, order);
-        if (column !== null && column.tags.includes("value")) out.push(column);
-      }
-      return out;
+      return helpers.columnsToSortedArray(this.columns, "value");
     },
   },
 
