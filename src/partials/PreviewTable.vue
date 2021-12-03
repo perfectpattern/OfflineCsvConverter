@@ -15,6 +15,7 @@
         <!--------------------HEADER--------------------->
         <thead class="bg-gray-100">
           <tr class="">
+            <!--Counter column-->
             <th
               class="
                 px-4
@@ -29,10 +30,11 @@
             >
               #
             </th>
+
+            <!--Timestamp-->
             <th
-              v-for="(field, columnIndex) in fieldsDisplayNames"
-              :key="columnIndex"
-              scope="col"
+              v-if="hasTimestamp"
+              :key="'ts'"
               class="
                 px-4
                 py-2
@@ -43,7 +45,24 @@
                 tracking-wider
               "
             >
-              {{ field }}
+              timestamp
+            </th>
+
+            <!--Values-->
+            <th
+              v-for="column in columnsToShow"
+              :key="column.id + 'vl'"
+              class="
+                px-4
+                py-2
+                pt-3
+                text-left text-xs
+                font-medium
+                text-gray-500
+                tracking-wider
+              "
+            >
+              {{ column.name }}
             </th>
           </tr>
         </thead>
@@ -53,9 +72,10 @@
           <!----Table rows---->
           <tr
             v-for="(record, rowIndex) in filteredData.data"
-            :key="'dqiuqfd' + rowIndex"
+            :key="'row' + rowIndex"
             class="hover:bg-gray-50 hover:bg-opacity-50 active:bg-gray-100"
           >
+            <!--Counter column-->
             <td
               class="
                 px-4
@@ -68,6 +88,26 @@
             >
               {{ filteredData.info.from + rowIndex }}
             </td>
+
+            <!--Timestamp-->
+            <td
+              v-if="hasTimestamp"
+              :key="'ts_val' + rowIndex"
+              class="
+                px-4
+                py-2
+                text-left text-sm
+                whitespace-nowrap
+                font-normal
+                text-gray-500
+              "
+            >
+              <div>
+                {{ format(field, record[field]) }}
+              </div>
+            </td>
+
+            <!--Values-->
             <td
               v-for="(field, colIndex) in fields"
               :key="rowIndex + '_' + colIndex"
@@ -104,15 +144,20 @@ import { formatter } from "/src/modules/formatter";
 export default {
   components: { Pagination, SvgPending },
 
-  props: [
-    "parsedData",
-    "validData",
-    "fields",
-    "renamings",
-    "timestampColumns",
-    "timestampSettings",
-    "outputMode",
-  ],
+  props: {
+    parsedData: {
+      default: null,
+    },
+    validData: {
+      default: false,
+    },
+    columns: {
+      default: null,
+    },
+    rules: {
+      default: null,
+    },
+  },
 
   data() {
     return {
@@ -136,22 +181,27 @@ export default {
     currentPage() {
       this.fetchEntries();
     },
-    fields() {
+    columns() {
       this.fetchEntries();
-      this.updateFieldsDisplayNames();
     },
-    renamings: {
-      deep: true,
-      handler() {
-        this.updateFieldsDisplayNames();
-      },
-    },
-    timestampSettings() {
+    rules() {
       this.fetchEntries();
     },
 
     timestampParsingError() {
       this.$emit("timestampParsingError", this.timestampParsingError);
+    },
+  },
+
+  computed: {
+    hasTimestamp() {
+      if (this.columns === null) return false;
+      return helpers.getColumnsByTag("timestamp").length > 0;
+    },
+
+    columnsToShow() {
+      if (this.columns === null) return [];
+      return helpers.getColumnsByTag("value");
     },
   },
 
@@ -193,7 +243,7 @@ export default {
       );
     },
 
-    updateFieldsDisplayNames() {
+    /*updateFieldsDisplayNames() {
       this.fieldsDisplayNames = [];
       for (var i = 0; i < this.fields.length; i++) {
         let field = this.fields[i];
@@ -201,7 +251,7 @@ export default {
           this.renamings.hasOwnProperty(field) ? this.renamings[field] : field
         );
       }
-    },
+    },*/
 
     format(field, value) {
       //prepare options

@@ -203,6 +203,8 @@ export default {
     columns() {
       let timestampColumns = helpers.getColumnsByTag(this.columns, "timestamp");
       //initialize timestamp rule
+      XXXXXXXXXXXXXXXXXXXXX
+      //TODO: Anstatt rules, für zu columns hinzu
       if (!this.rules.hasOwnProperty("timestamp"))
         this.rules["timestamp"] = {
           columns: timestampColumns,

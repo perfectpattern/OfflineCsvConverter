@@ -99,13 +99,13 @@
             <my-switch v-model="outputMode" :data="outputModes" />
           </div>
           <!--Preview table-->
-          <!--<preview-table
+          <preview-table
             :parsedData="parsedData"
             :validData="validData"
             :columns="columns"
             :rules="rules"
             @timestampParsingError="setTimestampParsingError"
-          />-->
+          />
         </div>
       </div>
 
