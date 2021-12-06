@@ -33,8 +33,10 @@ export default {
 
   data() {
     return {
+      disabled: true,
       rows: 0,
       percent: 0,
+      columnsToShow: [],
       running: false,
       preparingDownload: false,
       separator: ",",
@@ -42,15 +44,19 @@ export default {
     };
   },
 
-  computed: {
-    disabled() {
-      return this.columns === null;
+  columns: {
+    handler(val, oldVal) {
+      if (val === null) {
+        this.disabled = true;
+        this.columnsToShow = [];
+      } else {
+        this.disabled = false;
+        this.show = true;
+        this.columnsToShow = helpers.getOutputColumnsArray(val);
+        this.fetchEntries();
+      }
     },
-
-    columnsToShow() {
-      if (this.columns === null) return [];
-      return helpers.columnsToSortedArray(this.columns, "value");
-    },
+    deep: true,
   },
 
   methods: {

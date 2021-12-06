@@ -42,7 +42,7 @@ function onSuccess(parsingResult) {
     });
 
     //Add hardcoded additional columns
-    output.columns['timestamp'] = {
+    /*output.columns['timestamp'] = {
         fields: [], //filled ´by TimestampSettings.vue
         name: "timestamp",
         id: "timestamp",
@@ -55,7 +55,7 @@ function onSuccess(parsingResult) {
             outputMode: { id: "auto", label: "auto" },
             outputString: "DD.MM.YYYY HH:mm:ss.SSS",
         }
-    }
+    }*/
 
     return output;
 }

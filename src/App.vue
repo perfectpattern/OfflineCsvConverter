@@ -59,20 +59,29 @@
         :timestampParsingError="timestampParsingError"
       />
 
-      <!--Rule-->
-      <rule
-        v-if="columns !== null"
-        :id="'tset'"
-        v-model:columns="columns"
-        :parsedData="parsedData"
-      />
+      <!--Rules-->
+      <div v-if="columns !== null">
+        <rule
+          v-for="rule in rules"
+          :key="rule"
+          :id="rule"
+          v-model:columns="columns"
+          :parsedData="parsedData"
+          @remove-rule="removeRule"
+        />
+      </div>
+
+      <!--Create rule-->
+      <div @click="createRule">create rule</div>
 
       <!--Output Data Preview-->
-      <preview-table
-        :parsedData="parsedData"
-        :columns="columns"
-        @timestampParsingError="setTimestampParsingError"
-      />
+      <div v-if="columns !== null">
+        <preview-table
+          :parsedData="parsedData"
+          :columns="columns"
+          @timestampParsingError="setTimestampParsingError"
+        />
+      </div>
     </div>
 
     <!--CSV Parser-->
@@ -123,10 +132,10 @@ export default {
       message: null,
       filename: null,
       errors: null,
+      rules: [],
       validData: false,
       fromClipboard: false,
       columns: null,
-      rules: {},
       timestampSettings: {
         parsingMode: "auto",
         parsingString: "DD MM YYYY hh:mm:ss",
@@ -141,7 +150,29 @@ export default {
     };
   },
 
+  watch: {
+    columns: {
+      handler(val, oldVal) {
+        console.log("Change in columns detected");
+      },
+      deep: true,
+    },
+  },
+
   methods: {
+    createRule() {
+      let id = "rule_" + (this.rules.length + 1);
+      this.rules.push(id);
+    },
+
+    removeRule(id) {
+      var index = this.rules.indexOf(id);
+      if (index !== -1) {
+        this.rules.splice(index, 1);
+      }
+      delete this.columns[id];
+    },
+
     reset() {
       this.validData = false;
       this.errors = null;
@@ -155,7 +186,7 @@ export default {
     parsingFinished(parsingResult) {
       //prepare the parse data
       let response = dataPreparator.prepare(parsingResult);
-      console.log("response", response);
+      //console.log("response", response);
       this.errors = response.errors;
       this.parsedData = response.parsedData;
       this.columns = response.columns;

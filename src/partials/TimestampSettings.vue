@@ -136,25 +136,65 @@ export default {
         { id: "auto", label: "auto" },
         { id: "custom", label: "custom" },
       ],
+      show: false,
     };
   },
 
   watch: {
-    columns() {
-      if (this.columns === null) return;
-      //Update timestamp column, if timestamp tags changed
-      let timestampColumns = helpers.getColumnsByTag(this.columns, "timestamp");
-      let timestampFields = helpers.collectColumnFields(timestampColumns);
-      let tagsChanged =
-        this.columns.timestamp.fields.join(",") !== timestampFields.join(",");
-
-      if (tagsChanged) this.columns.timestamp.fields = timestampFields;
+    columns: {
+      handler(val, oldVal) {
+        if (val === null) this.show = false;
+        else this.updateColumns();
+      },
+      deep: true,
     },
   },
 
-  computed: {
-    show() {
-      return this.columns !== null && this.columns.timestamp.fields.length > 0;
+  methods: {
+    updateColumns() {
+      let timestampColumns = helpers.getColumnsByTag(this.columns, "timestamp");
+
+      if (Object.keys(timestampColumns).length > 0) {
+        //Get timestamp fields
+        let timestampFields = helpers.collectColumnFields(timestampColumns);
+        //Update timestamp entry
+        if (this.columns.hasOwnProperty("timestamp")) {
+          //get the fields
+
+          //compare fields and update if changed
+          if (
+            this.columns.timestamp.fields.join(",") !==
+            timestampFields.join(",")
+          )
+            this.columns.timestamp.fields = timestampFields;
+        }
+
+        //Create timestamp entry
+        else {
+          this.columns["timestamp"] = {
+            fields: timestampFields,
+            name: "timestamp",
+            id: "timestamp",
+            rule: null,
+            tags: [],
+            origin: "app",
+            params: {
+              parsingMode: this.inputModes[0],
+              parsingString: "DD.MM.YYYY HH:mm:ss.SSS",
+              outputMode: this.outputModes[0],
+              outputString: "DD.MM.YYYY HH:mm:ss.SSS",
+            },
+          };
+        }
+        this.show = true;
+      }
+
+      //Delete entry
+      else {
+        this.show = false;
+        if (this.columns.hasOwnProperty("timestamp"))
+          delete this.columns.timestamp;
+      }
     },
   },
 };

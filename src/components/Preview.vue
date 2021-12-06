@@ -90,7 +90,6 @@ export default {
     },
 
     rawString() {
-      console.log(this.formatted.raw);
       return this.formatted.raw.join(", ");
     },
   },

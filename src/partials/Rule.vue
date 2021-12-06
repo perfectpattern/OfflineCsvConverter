@@ -1,9 +1,20 @@
 <template>
   <div v-if="initialized">
     <div class="flex justify-between items-center mb-4 border-b pb-2 mt-10">
-      <div class="text-xl">Column</div>
+      <div class="text-xl">New column</div>
+      <div @click="$emit('remove-rule', id)">remove</div>
     </div>
     <div class="mb-4 flex gap-x-2">
+      <div>
+        <div class="mb-2 flex justify-between">
+          <div class="text-sm font-semibold">Name</div>
+        </div>
+        <jet-input
+          class="rounded-md py-1 h-10"
+          type="text"
+          v-model="columns[this.id].name"
+        />
+      </div>
       <div class="w-full">
         <div class="mb-2 flex justify-between">
           <div class="text-sm font-semibold">Source columns</div>
@@ -19,22 +30,12 @@
           class="rounded-md"
         />
       </div>
-      <div>
-        <div class="mb-2 flex justify-between">
-          <div class="text-sm font-semibold">Column name</div>
-        </div>
-        <jet-input
-          class="rounded-md py-1 h-10"
-          type="text"
-          v-model="columns[this.id].name"
-        />
-      </div>
     </div>
     <div class="flex justify-between gap-x-4">
       <!--Format as -->
       <div class="w-2/3">
         <div class="mb-2 flex justify-between items-center">
-          <div class="text-sm font-semibold">Format as</div>
+          <div class="text-sm font-semibold">Javascript coded rule</div>
           <div
             class="
               px-2
@@ -120,6 +121,7 @@ export default {
     return {
       initialized: false,
       code: "",
+      columnsArray: [],
     };
   },
 
@@ -128,21 +130,25 @@ export default {
   },
 
   watch: {
-    columns() {
-      this.initialize();
-    },
-  },
+    columns: {
+      handler(val, oldVal) {
+        //Column null
+        if (val === null) {
+          this.columnsArray = [];
+        }
 
-  computed: {
-    columnsArray() {
-      if (this.columns === null) return [];
-      let arr = helpers.columnsToSortedArray(this.columns, "value");
-      arr.forEach((element) => {
-        element.label = element.name;
-        element.value = element.fields[0];
-      });
-      console.log(arr);
-      return arr;
+        //Otherwise
+        else {
+          //update columnsArray
+          let arr = helpers.columnsToSortedArray(this.columns, "value");
+          arr.forEach((element) => {
+            element.label = element.name;
+            element.value = element.fields[0];
+          });
+          this.columnsArray = arr;
+        }
+      },
+      deep: true,
     },
   },
 
@@ -170,24 +176,11 @@ export default {
         name: "Custom name",
         id: this.id,
         rule: null,
-        tags: [],
+        tags: ["rule"],
         origin: "created",
       };
       this.initialized = true;
-      console.log("rule initializhed");
     },
-
-    /*updateFields() {
-      let fields = [];
-      console.log('this.selectedColumns', this.selectedColumns);
-      this.selectedColumns.forEach((column) => {
-        column.fields.forEach((field) => {
-          if (!fields.includes(field)) fields.push(field);
-        });
-      });
-      this.columns[this.id].fields = fields;
-      console.log("this.columns[this.id]", this.columns[this.id]);
-    },*/
   },
 };
 </script>

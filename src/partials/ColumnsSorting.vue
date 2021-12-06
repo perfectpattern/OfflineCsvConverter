@@ -16,32 +16,34 @@ export default {
     DraggableLists,
   },
 
-  props: ["columns", "validData"],
-
-  emits: ["update:columns"],
+  props: {
+    columns: {
+      default: null,
+    },
+    validData: {
+      default: false,
+    },
+  },
 
   data() {
     return {
       lists: null,
+      show: false,
     };
   },
-
   watch: {
-    columns() {
-      //Check columns
-      if (
-        this.columns === null ||
-        !this.columns instanceof Object ||
-        Object.keys(this.columns).length == 0
-      )
-        this.lists = null;
-      else this.initializeLists();
-    },
-  },
-
-  computed: {
-    show() {
-      return this.columns !== null;
+    columns: {
+      handler(val, oldVal) {
+        //Check columns
+        if (val === null) {
+          this.lists = null;
+          this.show = false;
+        } else {
+          this.initializeLists();
+          this.show = true;
+        }
+      },
+      deep: true,
     },
   },
 
@@ -62,7 +64,10 @@ export default {
           tempLists.timestamps.push(column);
         else if (column.tags.includes("removal"))
           tempLists.removals.push(column);
-        else tempLists.values.push(column);
+        else if (column.tags.includes("value")) tempLists.values.push(column);
+        else {
+          //IGNORE
+        }
       }
 
       this.lists = [
@@ -86,7 +91,6 @@ export default {
 
     emit(lists) {
       let tags = ["timestamp", "value", "removal"];
-      let updatedColumns = {};
       let overallOrderIndex = 0;
       lists.forEach((list, index) => {
         let tag = tags[index];
@@ -94,15 +98,12 @@ export default {
           column.tags = this.updateTags(column.tags, tag, tags);
           column.order = overallOrderIndex;
           overallOrderIndex++;
-          updatedColumns[column.id] = column;
+          this.columns[column.id] = column;
         });
       });
 
-      //add timestamp column again (since was ignored)
-      updatedColumns["timestamp"] = this.columns.timestamp;
-
       //emit
-      this.$emit("update:columns", updatedColumns);
+      this.$emit("update:columns", this.columns);
     },
 
     updateTags(target, newTag, removes) {

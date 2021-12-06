@@ -35,7 +35,7 @@
             </th>
 
             <!--Timestamp-->
-            <th
+            <!--<th
               v-if="columns.timestamp.fields.length > 0"
               :key="'ts'"
               class="
@@ -49,7 +49,7 @@
               "
             >
               timestamp
-            </th>
+            </th>-->
 
             <!--Values-->
             <th
@@ -93,7 +93,7 @@
             </td>
 
             <!--Timestamp-->
-            <td
+            <!--<td
               v-if="columns.timestamp.fields.length > 0"
               :key="'ts_val' + rowIndex"
               class="
@@ -108,7 +108,7 @@
               <div>
                 {{ format(row, columns.timestamp) }}
               </div>
-            </td>
+            </td>-->
 
             <!--Values-->
             <td
@@ -161,11 +161,17 @@ export default {
     return {
       perPage: ["5", "10", "20", "50"],
       currentPageLength: 10,
+      show: false,
       currentPage: 1,
       fieldsDisplayNames: [],
       filteredData: [],
+      columnsToShow: [],
       timestampParsingError: false,
     };
+  },
+
+  created() {
+    this.update();
   },
 
   watch: {
@@ -173,17 +179,20 @@ export default {
       this.currentPage = 1;
       this.fetchEntries();
     },
+
     currentPageLength() {
       this.fetchEntries();
     },
+
     currentPage() {
       this.fetchEntries();
     },
-    columns() {
-      this.fetchEntries();
-    },
-    rules() {
-      this.fetchEntries();
+
+    columns: {
+      handler(val, oldVal) {
+        this.update();
+      },
+      deep: true,
     },
 
     timestampParsingError() {
@@ -191,18 +200,18 @@ export default {
     },
   },
 
-  computed: {
-    show() {
-      return this.columns !== null;
-    },
-
-    columnsToShow() {
-      if (this.columns === null) return [];
-      return helpers.columnsToSortedArray(this.columns, "value");
-    },
-  },
-
   methods: {
+    update() {
+      if (this.columns === null) {
+        this.show = false;
+        this.columnsToShow = [];
+      } else {
+        this.show = true;
+        this.columnsToShow = helpers.getOutputColumnsArray(this.columns);
+        this.fetchEntries();
+      }
+    },
+
     pageLengthChange(length) {
       this.currentPageLength = length;
     },
@@ -231,7 +240,6 @@ export default {
     },
 
     fetchEntries() {
-      if (!this.show) return;
       this.timestampParsingError = false;
       this.filteredData = helpers.extractEntries(
         this.parsedData,

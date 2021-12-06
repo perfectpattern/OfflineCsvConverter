@@ -38,7 +38,8 @@ function collectColumnFields(columns) {
 function getColumAtOrder(columns, order) {
     for (let id in columns) {
         let column = columns[id];
-        if (column.order === order) return column;
+        if (column === undefined) console.log("ERROR: undefined", columns, order, id);
+        if (column.hasOwnProperty('order') && column.order === order) return column;
     }
     return null;
 }
@@ -53,6 +54,22 @@ function columnsToSortedArray(columns, tag = null) {
         }
     }
     return out;
+}
+
+function getOutputColumnsArray(columns) {
+    let arr = [];
+
+    //Teimstamp
+    if (columns.hasOwnProperty('timestamp')) arr.push(columns.timestamp);
+
+    //add rules (have no specific order)
+    for (let id in getColumnsByTag(columns, "rule")) {
+        arr.push(columns[id]);
+    }
+
+    //add values
+    arr = arr.concat(columnsToSortedArray(columns, "value"));
+    return arr;
 }
 
 function extractEntries(parsedData, page = null, length = null) {
@@ -335,6 +352,7 @@ export const helpers = {
     getColumAtOrder: getColumAtOrder,
     collectColumnFields: collectColumnFields,
     columnsToSortedArray: columnsToSortedArray,
+    getOutputColumnsArray: getOutputColumnsArray,
     extractEntries: extractEntries,
     getTimeMultiplier: getTimeMultiplier,
     timespanToMs: timespanToMs,
