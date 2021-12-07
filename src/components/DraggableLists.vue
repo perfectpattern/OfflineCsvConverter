@@ -2,7 +2,7 @@
   <div class="flex justify-between gap-x-4">
     <div v-for="listEntry in listsCopy" :key="listEntry.id" class="w-full">
       <!--Title-->
-      <h3 class="text-base mb-1">
+      <h3 class="text-sm font-semibold mb-1">
         {{ listEntry.name }} ({{ listEntry.list.length }})
       </h3>
 
@@ -73,6 +73,7 @@
           </div>
         </template>
       </draggable>
+      <div class="text-sm text-gray-500 mt-2">{{ listEntry.description }}</div>
     </div>
   </div>
 </template>

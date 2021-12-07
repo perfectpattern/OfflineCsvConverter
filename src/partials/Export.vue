@@ -29,8 +29,13 @@ export default {
     SvgPending,
   },
 
-  props: ["columns", "parsedData", "filename"],
-
+  props: {
+    columns: { default: null },
+    parsedData: { default: null },
+    filename: {
+      default: "name",
+    },
+  },
   data() {
     return {
       disabled: true,
@@ -43,20 +48,21 @@ export default {
       lineEnd: "\n",
     };
   },
-
-  columns: {
-    handler(val, oldVal) {
-      if (val === null) {
-        this.disabled = true;
-        this.columnsToShow = [];
-      } else {
-        this.disabled = false;
-        this.show = true;
-        this.columnsToShow = helpers.getOutputColumnsArray(val);
-        this.fetchEntries();
-      }
+  watch: {
+    columns: {
+      handler(val, oldVal) {
+        console.log("export detected change in columns");
+        if (val === null) {
+          this.disabled = true;
+          this.columnsToShow = [];
+        } else {
+          this.disabled = false;
+          this.show = true;
+          this.columnsToShow = helpers.getOutputColumnsArray(val);
+        }
+      },
+      deep: true,
     },
-    deep: true,
   },
 
   methods: {
@@ -112,10 +118,6 @@ export default {
 
     createCsvRow(parsedDataRow) {
       let arr = [];
-      if (this.columns.timestamp.fields.length > 0)
-        arr.push(
-          formatter.format(parsedDataRow, this.columns.timestamp).formatted
-        );
       for (var j = 0; j < this.columnsToShow.length; j++) {
         let formatted = formatter.format(parsedDataRow, this.columnsToShow[j]);
         arr.push(formatted.formatted);

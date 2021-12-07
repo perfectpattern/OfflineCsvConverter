@@ -1,8 +1,11 @@
 <template>
   <div v-if="show">
-    <div class="flex justify-between items-center mt-10 mb-4 border-b pb-2">
-      <div class="text-xl">Output preview</div>
-    </div>
+    <section-title
+      >Output preview
+      <template #complement> <slot name="title-complement"></slot></template>
+      <template #intro> Preview of the converted output. </template>
+    </section-title>
+
     <!--Pagination-->
     <pagination
       class="flex-shrink-0 rounded"

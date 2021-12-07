@@ -7,7 +7,7 @@ function getColumnsByTag(columns, tag) {
     let columnsWithTag = {};
     for (let id in columns) {
         let column = columns[id];
-        if (column.tags.includes(tag)) columnsWithTag[id] = column;
+        if (column.tags.includes(tag)) columnsWithTag[id] = JSON.parse(JSON.stringify(column));
     }
     return columnsWithTag;
 }
@@ -39,7 +39,7 @@ function getColumAtOrder(columns, order) {
     for (let id in columns) {
         let column = columns[id];
         if (column === undefined) console.log("ERROR: undefined", columns, order, id);
-        if (column.hasOwnProperty('order') && column.order === order) return column;
+        if (column.hasOwnProperty('order') && column.order === order) return JSON.parse(JSON.stringify(column));
     }
     return null;
 }
@@ -50,7 +50,7 @@ function columnsToSortedArray(columns, tag = null) {
         let column = getColumAtOrder(columns, order);
         if (column !== null) {
             if (tag === null || column.tags.includes(tag))
-                out.push(column);
+                out.push(JSON.parse(JSON.stringify(column)));
         }
     }
     return out;
@@ -64,7 +64,7 @@ function getOutputColumnsArray(columns) {
 
     //add rules (have no specific order)
     for (let id in getColumnsByTag(columns, "rule")) {
-        arr.push(columns[id]);
+        arr.push(JSON.parse(JSON.stringify(columns[id])));
     }
 
     //add values

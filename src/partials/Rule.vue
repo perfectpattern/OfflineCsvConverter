@@ -1,9 +1,22 @@
 <template>
   <div v-if="initialized">
-    <div class="flex justify-between items-center mb-4 border-b pb-2 mt-10">
-      <div class="text-xl">New column</div>
-      <div @click="$emit('remove-rule', id)">remove</div>
-    </div>
+    <section-title
+      >New column
+      <template #complement>
+        <div class="flex justify-end, gap-x-4">
+          <my-button
+            class="bg-red-500 hover:bg-red-600"
+            @click="$emit('remove-rule', id)"
+            >Remove</my-button
+          >
+        </div>
+      </template>
+      <template #intro>
+        Define this column by giving it a name, choosing target columns to get
+        the values from and write javascript code to define the column content.
+      </template>
+    </section-title>
+
     <div class="mb-4 flex gap-x-2">
       <div>
         <div class="mb-2 flex justify-between">
@@ -21,7 +34,7 @@
         </div>
         <Multiselect
           v-model="columns[this.id].fields"
-          @update:modelValue="resetCode"
+          @update:modelValue="columnSelectionUpdated"
           mode="tags"
           :closeOnSelect="false"
           :searchable="true"
@@ -31,51 +44,82 @@
         />
       </div>
     </div>
-    <div class="flex justify-between gap-x-4">
-      <!--Format as -->
-      <div class="w-2/3">
-        <div class="mb-2 flex justify-between items-center">
-          <div class="text-sm font-semibold">Javascript coded rule</div>
+    <my-transition>
+      <div class="flex justify-between gap-x-4" v-show="showEditor">
+        <!--Format as -->
+        <div class="w-2/3">
+          <div class="mb-2 flex justify-between items-center h-6">
+            <div class="text-sm font-semibold">Javascript coded rule</div>
+          </div>
           <div
-            class="
-              px-2
-              py-0
-              text-xs
-              uppercase
-              bg-blue-300
-              hover:bg-blue-400
-              active:bg-blue-500
-              rounded-md
-              text-white
-              cursor-pointer
-            "
-            @click="applyRule"
+            class="rounded-md overflow-y-auto overflow-x-hidden relative"
+            style="height: calc(100% - 30px)"
           >
-            apply
+            <prism-editor
+              class="my-editor"
+              v-model="code"
+              @update:modelValue="codeUnsaved = true"
+              :highlight="highlighter"
+              line-numbers
+            />
+            <my-transition>
+              <div
+                v-show="codeUnsaved"
+                class="
+                  px-2
+                  py-0
+                  text-xs
+                  uppercase
+                  bg-blue-300
+                  hover:bg-blue-400
+                  active:bg-blue-500
+                  rounded-sm
+                  text-white
+                  cursor-pointer
+                  absolute
+                  right-4
+                  bottom-4
+                  border
+                "
+                @click="saveCode"
+              >
+                apply
+              </div>
+            </my-transition>
           </div>
         </div>
-        <div class="rounded-md overflow-y-auto overflow-x-hidden h-32">
-          <prism-editor
-            class="my-editor"
-            v-model="code"
-            :highlight="highlighter"
-            line-numbers
-          ></prism-editor>
-        </div>
-      </div>
 
-      <!--Preview box-->
-      <div class="w-1/3">
-        <div class="mb-2 flex justify-between">
-          <div class="text-sm font-semibold">Preview</div>
-        </div>
-        <dashed-box class="border-gray-500 block h-32">
-          <div class="w-full">
-            <preview :parsedData="parsedData" :column="this.columns[this.id]" />
+        <!--Preview box-->
+        <div class="w-1/3">
+          <div class="mb-2 flex justify-between">
+            <div class="text-sm font-semibold">Preview</div>
+            <div class="flex justify-end gap-x-2 items-center">
+              <div class="uppercase text-xs text-gray-500 font-semibold">
+                row
+              </div>
+              <preview
+                :parsedData="parsedData"
+                :column="columns[this.id]"
+                :hideBox="true"
+                @update="updatePreview"
+              />
+            </div>
           </div>
-        </dashed-box>
+          <dashed-box class="border-gray-500 block">
+            <div class="w-full">
+              <value>
+                <template #title>Input</template>
+                [{{ rawString }}]
+              </value>
+              <value :error="formatted.error">
+                <template #title>Output</template>
+                {{ formatted.error ? formatted.errorMsg : formatted.formatted }}
+              </value>
+            </div>
+          </dashed-box>
+        </div>
       </div>
-    </div>
+    </my-transition>
   </div>
 </template>
 
@@ -122,6 +166,11 @@ export default {
       initialized: false,
       code: "",
       columnsArray: [],
+      rawString: null,
+      formatted: null,
+      previewIndex: null,
+      showEditor: false,
+      codeUnsaved: false,
     };
   },
 
@@ -135,12 +184,13 @@ export default {
         //Column null
         if (val === null) {
           this.columnsArray = [];
+          this.showEditor = false;
         }
 
         //Otherwise
         else {
           //update columnsArray
-          let arr = helpers.columnsToSortedArray(this.columns, "value");
+          let arr = helpers.columnsToSortedArray(val, "value");
           arr.forEach((element) => {
             element.label = element.name;
             element.value = element.fields[0];
@@ -153,16 +203,27 @@ export default {
   },
 
   methods: {
-    applyRule() {
-      this.columns[this.id].rule = this.code;
+    updatePreview(rawString, formatted, previewIndex) {
+      this.rawString = rawString;
+      this.formatted = formatted;
+      this.previewIndex = previewIndex;
     },
 
-    resetCode() {
-      let n = this.columns[this.id].fields.length;
+    saveCode() {
+      this.columns[this.id].rule = this.code;
+      this.codeUnsaved = false;
+    },
+
+    columnSelectionUpdated(value) {
+      //Update editor visibility
+      this.showEditor = value.length > 0;
+
+      //Create default code snipped
       let arr = [];
-      for (var i = 0; i < n; i++) arr.push("parseFloat(values[" + i + "])");
+      for (var i = 0; i < value.length; i++)
+        arr.push("parseFloat(values[" + i + "])");
       this.code = arr.join("+");
-      this.applyRule();
+      this.saveCode();
     },
 
     highlighter(code) {

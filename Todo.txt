@@ -1,1 +1,5 @@
+- Check new column name against all others
 - More options to define output format like separator, ...
+- Signal format as output option 
+- Excel format input
+-

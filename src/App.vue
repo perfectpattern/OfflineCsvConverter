@@ -6,6 +6,7 @@
       bg-gray-50 bg-opacity-50
       border-l border-r
       min-h-screen
+      pb-6
     "
   >
     <!--Head Section-->
@@ -71,16 +72,20 @@
         />
       </div>
 
-      <!--Create rule-->
-      <div @click="createRule">create rule</div>
-
       <!--Output Data Preview-->
       <div v-if="columns !== null">
         <preview-table
           :parsedData="parsedData"
           :columns="columns"
           @timestampParsingError="setTimestampParsingError"
-        />
+        >
+          <template #title-complement>
+            <!--Create rule-->
+            <my-button class="bg-blue-300 hover:bg-blue-400" @click="createRule"
+              >Add column</my-button
+            ></template
+          >
+        </preview-table>
       </div>
     </div>
 
@@ -95,8 +100,6 @@ import { dataPreparator } from "/src/modules/dataPreparator";
 import DialogModal from "./components/jetstream/DialogModal.vue";
 import MyNav from "./components/Nav.vue";
 import MySwitch from "./components/SwitchSmall.vue";
-import MyTransition from "./components/Transition.vue";
-import MyButton from "./components/Button.vue";
 import PreviewTable from "./partials/PreviewTable.vue";
 import Rule from "./partials/Rule.vue";
 import FileSelector from "./components/FileSelector.vue";
@@ -113,8 +116,6 @@ export default {
     DialogModal,
     MyNav,
     MySwitch,
-    MyTransition,
-    MyButton,
     PreviewTable,
     Rule,
     SvgPending,
@@ -153,7 +154,7 @@ export default {
   watch: {
     columns: {
       handler(val, oldVal) {
-        console.log("Change in columns detected");
+        //console.log("Change in columns detected");
       },
       deep: true,
     },
@@ -180,6 +181,7 @@ export default {
       this.filename = null;
       this.fromClipboard = false;
       this.columns = null;
+      this.rules = [];
     },
 
     //Entry point for parsed data

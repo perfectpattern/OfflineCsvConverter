@@ -1,95 +1,149 @@
 <template>
   <div v-if="show">
-    <div class="flex justify-between items-center mb-4 border-b pb-2 mt-10">
-      <div class="text-xl">Timestamp Settings</div>
-      <div>
-        (see
+    <section-title>
+      Timestamp Settings
+      <template #intro>
+        The columns in the Time / Date category are combined into one string to
+        be parsed as date by
         <a
           class="text-blue-400 hover:text-blue-800"
           href="https://momentjs.com/docs/#/parsing/string-format/"
           target="_blank"
           >moment.js</a
         >
-        )
-      </div>
-    </div>
+        and converted into your desired target timestamp. Try your settings on
+        multiple rows!
+      </template>
+    </section-title>
 
     <div class="flex justify-between gap-x-4">
       <!--Parse as-->
       <div class="w-full">
         <div class="mb-2 flex justify-between">
-          <div class="text-sm font-semibold">Parse as</div>
-          <my-switch
-            :options="inputModes"
-            v-model="columns.timestamp.params.parsingMode"
-          />
+          <div class="text-sm font-semibold h-6">Parsing</div>
         </div>
         <dashed-box
-          class="gap-x-4 items-center h-32"
+          class="gap-x-4 items-center"
           :class="{
             'border-red-500': timestampParsingError,
             'border-gray-500': !timestampParsingError,
           }"
         >
           <div class="w-full">
-            <div class="mb-1">Input format</div>
-            <jet-input
-              v-show="columns.timestamp.params.parsingMode.id === 'auto'"
-              class="rounded-md py-1 w-full"
-              type="text"
-              :disabled="true"
-              placeholder="auto mode"
-            />
-            <jet-input
-              v-show="columns.timestamp.params.parsingMode.id === 'custom'"
-              class="rounded-md py-1 w-full"
-              type="text"
-              v-model="columns.timestamp.params.parsingString"
-            />
+            <!--Value to parse-->
+            <value>
+              <template #title>Timestring to parse</template>
+              {{ rawString }}
+            </value>
+
+            <!--parsing string-->
+            <div>
+              <div class="flex justify-between">
+                <div class="mb-1 text-sm font-semibold">Parsing string</div>
+                <my-switch
+                  :options="inputModes"
+                  v-model="columns.timestamp.params.parsingMode"
+                />
+              </div>
+              <jet-input
+                v-show="columns.timestamp.params.parsingMode.id === 'auto'"
+                class="rounded-md py-1 w-full"
+                type="text"
+                :disabled="true"
+                placeholder="auto detection"
+              />
+              <jet-input
+                v-show="columns.timestamp.params.parsingMode.id === 'custom'"
+                class="rounded-md py-1 w-full"
+                type="text"
+                v-model="columns.timestamp.params.parsingString"
+              />
+            </div>
           </div>
         </dashed-box>
+        <div class="text-sm text-gray-500 mt-2">
+          Make use of the automated parsing mode or set a custom parsing string.
+          Please see
+          <a
+            class="text-blue-400 hover:text-blue-800"
+            href="https://momentjs.com/docs/#/parsing/string-format/"
+            target="_blank"
+            >moment.js</a
+          >
+          for more information about the parsing string.
+        </div>
       </div>
 
       <!--Format as -->
       <div class="w-full">
-        <div class="mb-2 flex justify-between">
-          <div class="text-sm font-semibold">Format as</div>
-          <my-switch
-            :options="outputModes"
-            v-model="columns.timestamp.params.outputMode"
-          />
-        </div>
-        <dashed-box class="gap-x-4 items-center border-gray-500 h-32">
-          <div class="w-full">
-            <div class="mb-1">Output format</div>
-            <jet-input
-              v-show="columns.timestamp.params.outputMode.id === 'auto'"
-              class="rounded-md py-1 w-full"
-              type="text"
-              :disabled="true"
-              placeholder="Unix Epoch [ms]"
-            />
-            <jet-input
-              v-show="columns.timestamp.params.outputMode.id === 'custom'"
-              class="rounded-md py-1 w-full"
-              type="text"
-              v-model="columns.timestamp.params.outputString"
+        <div class="mb-2 flex justify-between items-center">
+          <div class="text-sm font-semibold">Formatting</div>
+          <div class="flex justify-end gap-x-2 items-center">
+            <div class="uppercase text-xs text-gray-500 font-semibold">
+              preview row
+            </div>
+            <preview
+              :parsedData="parsedData"
+              :column="columns.timestamp"
+              :hideBox="true"
+              @update="updatePreview"
             />
           </div>
+        </div>
+        <dashed-box class="gap-x-4 items-center border-gray-500">
+          <div class="w-full">
+            <!--Value to parse-->
+            <value :error="formatted.error">
+              <template #title>Formatted timestamp</template>
+              {{ formatted.error ? formatted.errorMsg : formatted.formatted }}
+            </value>
+            <!--Output format-->
+            <div>
+              <div class="flex justify-between">
+                <div class="mb-1 text-sm font-semibold">Format string</div>
+                <my-switch
+                  :options="outputModes"
+                  v-model="columns.timestamp.params.outputMode"
+                />
+              </div>
+              <jet-input
+                v-show="columns.timestamp.params.outputMode.id === 'auto'"
+                class="rounded-md py-1 w-full"
+                type="text"
+                :disabled="true"
+                placeholder="Unix Epoch [ms]"
+              />
+              <jet-input
+                v-show="columns.timestamp.params.outputMode.id === 'custom'"
+                class="rounded-md py-1 w-full"
+                type="text"
+                v-model="columns.timestamp.params.outputString"
+              />
+            </div>
+          </div>
         </dashed-box>
+        <div class="text-sm text-gray-500 mt-2">
+          Inspect the parsed an formatted output timestamp. Please make sure,
+          this value was interpreted correctly e.g. by using the same string for
+          parsing and formatting.
+        </div>
       </div>
 
       <!--Preview box-->
-      <div class="w-full">
+      <!--<div class="w-full">
         <div class="mb-2 flex justify-between">
           <div class="text-sm font-semibold">Preview</div>
         </div>
         <dashed-box class="border-gray-500 block h-32">
           <div class="w-full">
-            <preview :parsedData="parsedData" :column="columns.timestamp" />
+            <preview
+              :parsedData="parsedData"
+              :column="columns.timestamp"
+              :hideBox="false"
+            />
           </div>
         </dashed-box>
-      </div>
+      </div>-->
     </div>
   </div>
 </template>
@@ -101,6 +155,7 @@ import DashedBox from "/src/components/DashedBox.vue";
 import MySwitch from "/src/components/SwitchSmall.vue";
 import Preview from "/src/components/Preview.vue";
 import { helpers } from "/src/modules/helpers";
+import PreviewNavigator from "/src/components/PreviewNavigator.vue";
 
 export default {
   components: {
@@ -109,6 +164,7 @@ export default {
     DashedBox,
     MySwitch,
     Preview,
+    PreviewNavigator,
   },
 
   props: {
@@ -137,6 +193,9 @@ export default {
         { id: "custom", label: "custom" },
       ],
       show: false,
+      rawString: null,
+      formatted: null,
+      previewIndex: null,
     };
   },
 
@@ -151,6 +210,12 @@ export default {
   },
 
   methods: {
+    updatePreview(rawString, formatted, previewIndex) {
+      this.rawString = rawString;
+      this.formatted = formatted;
+      this.previewIndex = previewIndex;
+    },
+
     updateColumns() {
       let timestampColumns = helpers.getColumnsByTag(this.columns, "timestamp");
 

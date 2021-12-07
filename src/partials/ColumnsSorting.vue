@@ -1,8 +1,13 @@
 <template>
   <div v-show="show">
-    <div class="flex justify-between items-center mb-4 border-b pb-2">
-      <div class="text-xl mt-10">Sort Columns</div>
-    </div>
+    <section-title
+      >Sort Columns
+      <template #intro>
+        Distribute the columns among the three categories 'Time / Date',
+        'Values' and 'Removals' and change their order.</template
+      >
+    </section-title>
+
     <draggable-lists :lists="lists" @update:lists="emit" />
   </div>
 </template>
@@ -73,17 +78,22 @@ export default {
       this.lists = [
         {
           id: "_timestamps",
-          name: "Timestamps",
+          name: "Time / Date",
+          description:
+            "Move columns with time or date information here. For parsing, their order is relevant.",
           list: tempLists.timestamps,
         },
         {
           id: "_values",
           name: "Values",
+          description:
+            "Columns containing values that should be kept, remain here. Order and names can be changed.",
           list: tempLists.values,
         },
         {
           id: "_removals",
           name: "Removals",
+          description: "Move columns to be removed here.",
           list: tempLists.removals,
         },
       ];
