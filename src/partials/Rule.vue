@@ -1,19 +1,20 @@
 <template>
   <div v-if="initialized">
-    <section-title
-      >New column
+    <section-title :hideIntro="!showExplanations">
+      New column
       <template #complement>
         <div class="flex justify-end, gap-x-4">
           <my-button
-            class="bg-red-500 hover:bg-red-600"
+            :color="'red'"
+            :icon="'x'"
             @click="$emit('remove-rule', id)"
             >Remove</my-button
           >
         </div>
       </template>
       <template #intro>
-        Define this column by giving it a name, choosing target columns to get
-        the values from and write javascript code to define the column content.
+        EXPERT FEATURE! Define your new column by giving it a name, choosing
+        source columns and write javascript code to define the column content.
       </template>
     </section-title>
 
@@ -45,78 +46,88 @@
       </div>
     </div>
     <my-transition>
-      <div class="flex justify-between gap-x-4" v-show="showEditor">
-        <!--Format as -->
-        <div class="w-2/3">
-          <div class="mb-2 flex justify-between items-center h-6">
-            <div class="text-sm font-semibold">Javascript coded rule</div>
+      <div v-show="showEditor">
+        <div class="flex justify-between gap-x-4">
+          <!--Format as -->
+          <div class="w-2/3">
+            <div class="mb-2 flex justify-between items-center h-6">
+              <div class="text-sm font-semibold">Javascript coded rule</div>
+            </div>
+            <div
+              class="rounded-md overflow-y-auto overflow-x-hidden relative"
+              style="height: calc(100% - 30px)"
+            >
+              <prism-editor
+                class="my-editor"
+                v-model="code"
+                @update:modelValue="codeUnsaved = true"
+                :highlight="highlighter"
+                line-numbers
+              />
+              <my-transition>
+                <div
+                  v-show="codeUnsaved"
+                  class="
+                    px-2
+                    py-0
+                    text-xs
+                    uppercase
+                    bg-blue-300
+                    hover:bg-blue-400
+                    active:bg-blue-500
+                    rounded-sm
+                    text-white
+                    cursor-pointer
+                    absolute
+                    right-4
+                    bottom-4
+                    border
+                  "
+                  @click="saveCode"
+                >
+                  apply
+                </div>
+              </my-transition>
+            </div>
           </div>
-          <div
-            class="rounded-md overflow-y-auto overflow-x-hidden relative"
-            style="height: calc(100% - 30px)"
-          >
-            <prism-editor
-              class="my-editor"
-              v-model="code"
-              @update:modelValue="codeUnsaved = true"
-              :highlight="highlighter"
-              line-numbers
-            />
-            <my-transition>
-              <div
-                v-show="codeUnsaved"
-                class="
-                  px-2
-                  py-0
-                  text-xs
-                  uppercase
-                  bg-blue-300
-                  hover:bg-blue-400
-                  active:bg-blue-500
-                  rounded-sm
-                  text-white
-                  cursor-pointer
-                  absolute
-                  right-4
-                  bottom-4
-                  border
-                "
-                @click="saveCode"
-              >
-                apply
+
+          <!--Preview box-->
+          <div class="w-1/3">
+            <div class="mb-2 flex justify-between">
+              <div class="text-sm font-semibold">Preview</div>
+              <div class="flex justify-end gap-x-2 items-center">
+                <div class="uppercase text-xs text-gray-500 font-semibold">
+                  row
+                </div>
+                <preview
+                  :parsedData="parsedData"
+                  :column="columns[this.id]"
+                  :hideBox="true"
+                  @update="updatePreview"
+                />
               </div>
-            </my-transition>
+            </div>
+            <dashed-box class="border-gray-500 block">
+              <div class="w-full">
+                <value>
+                  <template #title>Input</template>
+                  [{{ rawString }}]
+                </value>
+                <value :error="formatted.error">
+                  <template #title>Output</template>
+                  {{
+                    formatted.error ? formatted.errorMsg : formatted.formatted
+                  }}
+                </value>
+              </div>
+            </dashed-box>
           </div>
         </div>
-
-        <!--Preview box-->
-        <div class="w-1/3">
-          <div class="mb-2 flex justify-between">
-            <div class="text-sm font-semibold">Preview</div>
-            <div class="flex justify-end gap-x-2 items-center">
-              <div class="uppercase text-xs text-gray-500 font-semibold">
-                row
-              </div>
-              <preview
-                :parsedData="parsedData"
-                :column="columns[this.id]"
-                :hideBox="true"
-                @update="updatePreview"
-              />
-            </div>
-          </div>
-          <dashed-box class="border-gray-500 block">
-            <div class="w-full">
-              <value>
-                <template #title>Input</template>
-                [{{ rawString }}]
-              </value>
-              <value :error="formatted.error">
-                <template #title>Output</template>
-                {{ formatted.error ? formatted.errorMsg : formatted.formatted }}
-              </value>
-            </div>
-          </dashed-box>
+        <div class="text-sm text-gray-500 mt-2" v-show="showExplanations">
+          Describe the output with help of javascript code. Your first chosen
+          column is values[0], the second is values[1] and so on. Apply code
+          changes to make them visible in the preview. Use the preview row
+          selector to try your code on various rows.
         </div>
       </div>
     </my-transition>
@@ -158,6 +169,10 @@ export default {
 
     parsedData: {
       default: null,
+    },
+
+    showExplanations: {
+      default: true,
     },
   },
 

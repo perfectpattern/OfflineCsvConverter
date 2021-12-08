@@ -1,18 +1,18 @@
 <template>
   <div v-if="show">
-    <section-title>
+    <section-title :hideIntro="!showExplanations">
       Timestamp Settings
       <template #intro>
-        The columns in the Time / Date category are combined into one string to
-        be parsed as date by
+        The columns in the Time / Date category (section 'Columns') are combined
+        into one string that can be parsed as date by
         <a
           class="text-blue-400 hover:text-blue-800"
           href="https://momentjs.com/docs/#/parsing/string-format/"
           target="_blank"
           >moment.js</a
         >
-        and converted into your desired target timestamp. Try your settings on
-        multiple rows!
+        and converted into your desired target timestamp. Use the preview row
+        selector to try your settings on various rows.
       </template>
     </section-title>
 
@@ -61,7 +61,7 @@
             </div>
           </div>
         </dashed-box>
-        <div class="text-sm text-gray-500 mt-2">
+        <div class="text-sm text-gray-500 mt-2" v-show="showExplanations">
           Make use of the automated parsing mode or set a custom parsing string.
           Please see
           <a
@@ -122,8 +122,8 @@
             </div>
           </div>
         </dashed-box>
-        <div class="text-sm text-gray-500 mt-2">
-          Inspect the parsed an formatted output timestamp. Please make sure,
+        <div class="text-sm text-gray-500 mt-2" v-show="showExplanations">
+          Inspect the parsed an formatted output timestamp. Make sure,
           this value was interpreted correctly e.g. by using the same string for
           parsing and formatting.
         </div>
@@ -179,6 +179,10 @@ export default {
     timestampParsingError: {
       type: Boolean,
       default: false,
+    },
+
+    showExplanations: {
+      default: true,
     },
   },
 

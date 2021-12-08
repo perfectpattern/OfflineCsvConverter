@@ -1,14 +1,19 @@
 <template>
   <div v-show="show">
-    <section-title
-      >Sort Columns
+    <section-title :hideIntro="!showExplanations">
+      Columns
+      <template #complement> <slot name="title-complement"></slot></template>
       <template #intro>
-        Distribute the columns among the three categories 'Time / Date',
-        'Values' and 'Removals' and change their order.</template
+        Distribute the columns among the three categories and change their
+        order.</template
       >
     </section-title>
 
-    <draggable-lists :lists="lists" @update:lists="emit" />
+    <draggable-lists
+      :lists="lists"
+      @update:lists="emit"
+      :showExplanations="showExplanations"
+    />
   </div>
 </template>
 
@@ -27,6 +32,9 @@ export default {
     },
     validData: {
       default: false,
+    },
+    showExplanations: {
+      default: true,
     },
   },
 
@@ -80,20 +88,20 @@ export default {
           id: "_timestamps",
           name: "Time / Date",
           description:
-            "Move columns with time or date information here. For parsing, their order is relevant.",
+            "Columns with time or date information that should be parsed. For parsing, the order is relevant.",
           list: tempLists.timestamps,
         },
         {
           id: "_values",
           name: "Values",
           description:
-            "Columns containing values that should be kept, remain here. Order and names can be changed.",
+            "Columns containing values. Order and names can be changed.",
           list: tempLists.values,
         },
         {
           id: "_removals",
           name: "Removals",
-          description: "Move columns to be removed here.",
+          description: "Columns to be removed.",
           list: tempLists.removals,
         },
       ];

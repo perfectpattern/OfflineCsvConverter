@@ -1,5 +1,9 @@
 <template>
-  <my-button :disabled="disabled" class="bg-gray-700" @click="exportData"
+  <my-button
+    :disabled="disabled"
+    :icon="'download'"
+    :color="'blue-full'"
+    @click="exportData"
     >CONVERT & DOWNLOAD</my-button
   >
 
@@ -51,7 +55,6 @@ export default {
   watch: {
     columns: {
       handler(val, oldVal) {
-        console.log("export detected change in columns");
         if (val === null) {
           this.disabled = true;
           this.columnsToShow = [];

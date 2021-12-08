@@ -73,7 +73,9 @@
           </div>
         </template>
       </draggable>
-      <div class="text-sm text-gray-500 mt-2">{{ listEntry.description }}</div>
+      <div class="text-sm text-gray-500 mt-2" v-show="showExplanations">
+        {{ listEntry.description }}
+      </div>
     </div>
   </div>
 </template>
@@ -131,6 +133,10 @@ export default {
           ],
         },
       ],*/,
+    },
+
+    showExplanations: {
+      default: false,
     },
   },
 

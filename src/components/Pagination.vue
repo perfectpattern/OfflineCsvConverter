@@ -1,19 +1,19 @@
 <template>
-  <div class="flex justify-between items-center mb-4">
+  <div class="flex justify-between items-center mb-4 text-gray-500">
     <!--buttons-->
     <div class="flex justify-between sm:justify-end gap-2">
       <my-button
         :size="'small'"
-        class="bg-blue-300"
+        :icon="'chevronLeftDouble'"
+        :showText="false"
         :disabled="info.isFirstPage"
         @click="$emit('pageOrder', 'first')"
-      >
-        <svg-chevron-left-double class="h-4 w-6 stroke-current" />
-      </my-button>
+      />
 
       <my-button
         :size="'small'"
-        class="bg-blue-300"
+        :icon="'chevronLeft'"
+        :showText="false"
         :disabled="info.isFirstPage"
         @click="$emit('pageOrder', 'prev')"
       >
@@ -29,7 +29,9 @@
         class="
           border-gray-300
           focus:border-indigo-300
-          focus:ring focus:ring-indigo-200 focus:ring-opacity-50
+          focus:ring
+          focus:ring-indigo-200
+          focus:ring-opacity-50
           rounded-md
           shadow-sm
           py-1
@@ -37,7 +39,8 @@
       />
       <my-button
         :size="'small'"
-        class="bg-blue-300"
+        :icon="'chevronRight'"
+        :showText="false"
         :disabled="info.isLastPage"
         @click="$emit('pageOrder', 'next')"
       >
@@ -46,7 +49,8 @@
 
       <my-button
         :size="'small'"
-        class="bg-blue-300"
+        :icon="'chevronRightDouble'"
+        :showText="false"
         :disabled="info.isLastPage"
         @click="$emit('pageOrder', 'last')"
       >
@@ -57,7 +61,7 @@
     <!--Pagination text-->
     <div class="hidden sm:block">
       <p
-        class="text-sm font-normal text-gray-700 uppercase"
+        class="text-sm font-normal text-gray-600 uppercase"
         v-if="info.total > 0"
       >
         Showing
@@ -68,35 +72,36 @@
         <span class="font-bold">{{ info.total }}</span>
         records
       </p>
-      <p class="text-sm text-gray-700" v-else>No records</p>
+      <p class="text-sm text-gray-500" v-else>No records</p>
     </div>
 
     <!--Page length-->
     <div class="flex gap-x-2 items-center">
-    <select
-      class="
-        appearance-none
-        block
-        w-24
-        px-3
-        py-1
-        border border-gray-300
-        rounded-md
-        shadow-sm
-        placeholder-gray-400
-        focus:outline-none
-        focus:ring-1 focus:ring-blue-200
-        focus:border-blue-200
-        sm:text-sm
-      "
-      :value="info.pageLength"
-      @change="$emit('pageLengthChanged', $event.target.value)"
-    >
-      <option v-for="(record, index) in perPage" :key="index" :value="record">
-        {{ record }}
-      </option>
-    </select>
-    per page
+      Page size:
+      <select
+        class="
+          appearance-none
+          block
+          w-24
+          px-3
+          py-1
+          border border-gray-300
+          rounded-md
+          shadow-sm
+          placeholder-gray-400
+          focus:outline-none
+          focus:ring-1
+          focus:ring-blue-200
+          focus:border-blue-200
+          sm:text-sm
+        "
+        :value="info.pageLength"
+        @change="$emit('pageLengthChanged', $event.target.value)"
+      >
+        <option v-for="(record, index) in perPage" :key="index" :value="record">
+          {{ record }}
+        </option>
+      </select>
     </div>
   </div>
 </template>

@@ -51,6 +51,7 @@
               relative
               cursor-pointer
               rounded-md
+              text-lg
               font-semibold
               text-blue-300
               hover:text-blue-500
@@ -69,7 +70,7 @@
             />
           </label>
 
-          <p>|</p>
+          <!--<p>|</p>
           <div
             @click="readClipboard"
             class="
@@ -81,11 +82,14 @@
             "
           >
             Read from clipboard
-          </div>
+          </div>-->
         </div>
 
-        <div class="mt-2 mb-6 text-center text-xs font-semibold">
-          Limit: Few hundred MB, depending on your devices hardware performance.
+        <div class="mt-4 mb-2 text-center text-sm font-semibold">
+          Max size: A few 100 MB
+        </div>
+        <div class="text-center text-xs font-semibold text-gray-400">
+          (limit depending on your devices hardware performance)
         </div>
         <div v-if="text" class="text-gray-500 text-center mt-2 text-xs">
           {{ text }}

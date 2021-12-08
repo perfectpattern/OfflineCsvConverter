@@ -12,8 +12,49 @@
     <!--Head Section-->
     <head-section />
 
+    <!--Main buttons-->
+    <div class="p-6 flex justify-between" v-show="filename !== null">
+      <!--Reset-->
+      <my-button
+        :icon="'reload'"
+        :disabled="isReset"
+        :color="'red-full'"
+        @click="reset"
+        >Reset</my-button
+      >
+
+      <!--Export-->
+      <export
+        :columns="columns"
+        :parsedData="parsedData"
+        :filename="filename"
+      />
+    </div>
+
+    <!--Viewing options-->
+    <div
+      class="px-6 flex justify-end gap-x-2 text-sm text-blue-300 font-semibold"
+      v-show="filename !== null && errors === null"
+    >
+      Explanations:
+      <my-switch :options="explanationModes" v-model="hideExplanations" />
+    </div>
+
+    <!--Filename-->
     <div class="p-6">
-      <div class="text-2xl mb-4 flex justify-between text-gray-500">
+      <div
+        v-show="filename !== null"
+        class="
+          text-3xl
+          mb-8
+          flex
+          justify-center
+          text-gray-500
+          gap-x-2
+          items-center
+        "
+      >
+        <svg-document class="h-10 w-10" />
         <div>
           {{
             filename !== null
@@ -23,23 +64,12 @@
               : "No CSV data yet"
           }}
         </div>
-        <div class="flex justify-end gap-x-2">
-          <!--Reset-->
-          <my-button @click="reset" class="bg-red-500">Restart</my-button>
-
-          <!--Export-->
-          <export
-            :columns="columns"
-            :parsedData="parsedData"
-            :filename="filename"
-          />
-        </div>
       </div>
 
       <!--File input local-->
       <my-transition>
         <file-selector
-          v-show="!validData"
+          v-show="!validData && errors === null"
           :accept="'.json, .csv, application/json, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel'"
           :filename="filename"
           @file-selected="fileSelected"
@@ -51,14 +81,15 @@
       <errors :errors="errors" />
 
       <!--Columns Sorting-->
-      <columns-sorting v-model:columns="columns" />
-
-      <!--Timedate parsing-->
-      <timestamp-settings
+      <columns-sorting
         v-model:columns="columns"
-        :parsedData="parsedData"
-        :timestampParsingError="timestampParsingError"
-      />
+        :showExplanations="hideExplanations.id === 'show'"
+      >
+        <template #title-complement>
+          <!--Create rule-->
+          <my-button :icon="'add'" @click="createRule"> Add column </my-button>
+        </template></columns-sorting
+      >
 
       <!--Rules-->
       <div v-if="columns !== null">
@@ -68,24 +99,27 @@
           :id="rule"
           v-model:columns="columns"
           :parsedData="parsedData"
+          :showExplanations="hideExplanations.id === 'show'"
           @remove-rule="removeRule"
         />
       </div>
+
+      <!--Timedate parsing-->
+      <timestamp-settings
+        v-model:columns="columns"
+        :parsedData="parsedData"
+        :showExplanations="hideExplanations.id === 'show'"
+        :timestampParsingError="timestampParsingError"
+      />
 
       <!--Output Data Preview-->
       <div v-if="columns !== null">
         <preview-table
           :parsedData="parsedData"
+          :showExplanations="hideExplanations.id === 'show'"
           :columns="columns"
           @timestampParsingError="setTimestampParsingError"
-        >
-          <template #title-complement>
-            <!--Create rule-->
-            <my-button class="bg-blue-300 hover:bg-blue-400" @click="createRule"
-              >Add column</my-button
-            ></template
-          >
-        </preview-table>
+        />
       </div>
     </div>
 
@@ -110,6 +144,7 @@ import Export from "./partials/Export.vue";
 import TimestampSettings from "./partials/TimestampSettings.vue";
 import HeadSection from "./partials/HeadSection.vue";
 import ParserCsv from "./partials/ParserCSV.vue";
+import SvgDocument from "/src/svg/document.vue";
 
 export default {
   components: {
@@ -126,10 +161,16 @@ export default {
     TimestampSettings,
     HeadSection,
     ParserCsv,
+    SvgDocument,
   },
 
   data() {
     return {
+      explanationModes: [
+        { id: "show", label: "show" },
+        { id: "hide", label: "hide" },
+      ],
+      hideExplanations: { id: "show", label: "show" },
       message: null,
       filename: null,
       errors: null,
@@ -148,6 +189,7 @@ export default {
       outputMode: { converted: "Converted" },
       parsedData: null,
       rawCsv: null,
+      isReset: true,
     };
   },
 
@@ -182,6 +224,7 @@ export default {
       this.fromClipboard = false;
       this.columns = null;
       this.rules = [];
+      this.isReset = true;
     },
 
     //Entry point for parsed data
@@ -194,6 +237,7 @@ export default {
       this.columns = response.columns;
       this.rawCsv = null;
       this.validData = response.errors === null;
+      this.isReset = false;
     },
 
     readClipboard() {

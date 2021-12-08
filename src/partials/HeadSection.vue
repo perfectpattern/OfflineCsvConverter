@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-gray-100 pb-3">
+  <div class="bg-gray-100 pb-3 border-b">
     <div class="text-center py-4 text-4xl font-semibold text-blue-300">
       CSV Converter
     </div>

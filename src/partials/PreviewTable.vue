@@ -1,9 +1,12 @@
 <template>
   <div v-if="show">
-    <section-title
-      >Output preview
-      <template #complement> <slot name="title-complement"></slot></template>
-      <template #intro> Preview of the converted output. </template>
+    <section-title :hideIntro="!showExplanations">
+      Output preview
+      <template #intro>
+        Preview of the converted output. This preview is created on the fly by
+        applying your settings to the rows shown. Use the button on top right
+        (Convert & Download) to export the whole converted csv file.
+      </template>
     </section-title>
 
     <!--Pagination-->
@@ -157,6 +160,10 @@ export default {
 
     columns: {
       default: null,
+    },
+
+    showExplanations: {
+      default: true,
     },
   },
 
