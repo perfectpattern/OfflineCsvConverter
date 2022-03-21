@@ -113,7 +113,7 @@ export default {
 
     createCsvHeader() {
       let arr = [];
-      if (this.columns.timestamp.fields.length > 0) arr.push("timestamp");
+      //if (this.columns.timestamp.fields.length > 0) arr.push("timestamp");
       for (var k = 0; k < this.columnsToShow.length; k++)
         arr.push(this.columnsToShow[k].name);
       return arr.join(this.separator) + this.lineEnd;

@@ -1,5 +1,21 @@
 <template>
-  <div class="bg-gray-100 pb-3 border-b">
+  <div class="bg-gray-100 pb-3 border-b relative">
+    <!--Version-->
+    <div
+      class="
+        absolute
+        top-2
+        right-2
+        text-xs
+        font-semibold
+        text-gray-500
+        transform
+        scale-75
+      "
+    >
+      V {{ appVersion }}
+    </div>
+
     <div class="text-center py-4 text-4xl font-semibold text-blue-300">
       CSV Converter
     </div>
@@ -19,7 +35,7 @@
     </div>
 
     <div class="mt-2 mb-6 text-center text-sm">
-      Parse & format a CSV to use it for AutoML like e.g.
+      Parse & format a CSV to use it e.g. for AutoML like
       <a href="https://perfectpattern.de" target="_blank">aivis</a>. The
       conversion happens purely client-based. No data is uploaded, saved or
       sent.
@@ -54,11 +70,14 @@
 <script>
 import Badge from "/src/components/Badge.vue";
 import SvgGithub from "/src/svg/Github.vue";
+import { version } from "../../package";
 export default {
   components: {
     Badge,
     SvgGithub,
   },
-  setup() {},
+  data: () => ({
+    appVersion: version,
+  }),
 };
 </script>
